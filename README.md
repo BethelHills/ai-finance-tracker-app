@@ -306,6 +306,17 @@ AI analyzes code changes for review:
 6. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
+### 🚀 Quick Demo
+
+For a quick live demo with network access:
+
+```bash
+# Start demo server (accessible from other devices on your network)
+./scripts/start-demo.sh
+```
+
+This will start the server and display both local and network URLs for easy access from any device on your network.
+
 ### AI Code Generation
 
 1. **Generate components**
