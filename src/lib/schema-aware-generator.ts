@@ -1,53 +1,53 @@
-import OpenAI from 'openai'
-import { PrismaClient } from '@prisma/client'
+import OpenAI from 'openai';
+import { PrismaClient } from '@prisma/client';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-})
+});
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 export interface SchemaAnalysis {
   models: Array<{
-    name: string
+    name: string;
     fields: Array<{
-      name: string
-      type: string
-      required: boolean
-      unique?: boolean
+      name: string;
+      type: string;
+      required: boolean;
+      unique?: boolean;
       relation?: {
-        model: string
-        type: string
-      }
-    }>
-    indexes: string[]
+        model: string;
+        type: string;
+      };
+    }>;
+    indexes: string[];
     relations: Array<{
-      field: string
-      model: string
-      type: string
-    }>
-  }>
+      field: string;
+      model: string;
+      type: string;
+    }>;
+  }>;
   enums: Array<{
-    name: string
-    values: string[]
-  }>
+    name: string;
+    values: string[];
+  }>;
 }
 
 export interface GeneratedCRUDService {
-  service: string
-  types: string
-  tests: string
-  apiRoutes: string
+  service: string;
+  types: string;
+  tests: string;
+  apiRoutes: string;
 }
 
 export class SchemaAwareGenerator {
   static async analyzeSchema(): Promise<SchemaAnalysis> {
     try {
       // Read the Prisma schema file
-      const fs = require('fs')
-      const path = require('path')
-      const schemaPath = path.join(process.cwd(), 'prisma', 'schema.prisma')
-      const schemaContent = fs.readFileSync(schemaPath, 'utf8')
+      const fs = require('fs');
+      const path = require('path');
+      const schemaPath = path.join(process.cwd(), 'prisma', 'schema.prisma');
+      const schemaContent = fs.readFileSync(schemaPath, 'utf8');
 
       const prompt = `
         Analyze this Prisma schema and extract the structure:
@@ -88,38 +88,42 @@ export class SchemaAwareGenerator {
             }
           ]
         }
-      `
+      `;
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: 'gpt-4',
         messages: [
           {
-            role: "system",
-            content: "You are an expert at analyzing Prisma schemas. Extract the structure and return valid JSON only."
+            role: 'system',
+            content:
+              'You are an expert at analyzing Prisma schemas. Extract the structure and return valid JSON only.',
           },
           {
-            role: "user",
-            content: prompt
-          }
+            role: 'user',
+            content: prompt,
+          },
         ],
         temperature: 0.1,
-        max_tokens: 4000
-      })
+        max_tokens: 4000,
+      });
 
-      const response = completion.choices[0]?.message?.content
-      if (!response) throw new Error('No response from AI')
+      const response = completion.choices[0]?.message?.content;
+      if (!response) throw new Error('No response from AI');
 
-      return JSON.parse(response)
+      return JSON.parse(response);
     } catch (error) {
-      console.error('Error analyzing schema:', error)
-      throw new Error('Failed to analyze schema')
+      console.error('Error analyzing schema:', error);
+      throw new Error('Failed to analyze schema');
     }
   }
 
-  static async generateCRUDService(modelName: string, schema: SchemaAnalysis): Promise<GeneratedCRUDService> {
+  static async generateCRUDService(
+    modelName: string,
+    schema: SchemaAnalysis
+  ): Promise<GeneratedCRUDService> {
     try {
-      const model = schema.models.find(m => m.name === modelName)
-      if (!model) throw new Error(`Model ${modelName} not found in schema`)
+      const model = schema.models.find(m => m.name === modelName);
+      if (!model) throw new Error(`Model ${modelName} not found in schema`);
 
       const prompt = `
         Generate a complete CRUD service for the ${modelName} model based on this schema:
@@ -144,35 +148,38 @@ export class SchemaAwareGenerator {
         - Type safety throughout
         
         Return as JSON with keys: service, types, tests, apiRoutes
-      `
+      `;
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: 'gpt-4',
         messages: [
           {
-            role: "system",
-            content: "You are an expert at generating Prisma-based CRUD services. Generate production-ready code with proper error handling, validation, and type safety."
+            role: 'system',
+            content:
+              'You are an expert at generating Prisma-based CRUD services. Generate production-ready code with proper error handling, validation, and type safety.',
           },
           {
-            role: "user",
-            content: prompt
-          }
+            role: 'user',
+            content: prompt,
+          },
         ],
         temperature: 0.3,
-        max_tokens: 6000
-      })
+        max_tokens: 6000,
+      });
 
-      const response = completion.choices[0]?.message?.content
-      if (!response) throw new Error('No response from AI')
+      const response = completion.choices[0]?.message?.content;
+      if (!response) throw new Error('No response from AI');
 
-      return JSON.parse(response)
+      return JSON.parse(response);
     } catch (error) {
-      console.error('Error generating CRUD service:', error)
-      throw new Error('Failed to generate CRUD service')
+      console.error('Error generating CRUD service:', error);
+      throw new Error('Failed to generate CRUD service');
     }
   }
 
-  static async generateTypeScriptTypes(schema: SchemaAnalysis): Promise<string> {
+  static async generateTypeScriptTypes(
+    schema: SchemaAnalysis
+  ): Promise<string> {
     try {
       const prompt = `
         Generate TypeScript types for this Prisma schema:
@@ -193,35 +200,38 @@ export class SchemaAwareGenerator {
         - Use utility types where appropriate
         - Include proper null/undefined handling
         - Use generics for reusable types
-      `
+      `;
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: 'gpt-4',
         messages: [
           {
-            role: "system",
-            content: "You are an expert at generating TypeScript types from database schemas. Generate comprehensive, well-documented types."
+            role: 'system',
+            content:
+              'You are an expert at generating TypeScript types from database schemas. Generate comprehensive, well-documented types.',
           },
           {
-            role: "user",
-            content: prompt
-          }
+            role: 'user',
+            content: prompt,
+          },
         ],
         temperature: 0.2,
-        max_tokens: 4000
-      })
+        max_tokens: 4000,
+      });
 
-      const response = completion.choices[0]?.message?.content
-      if (!response) throw new Error('No response from AI')
+      const response = completion.choices[0]?.message?.content;
+      if (!response) throw new Error('No response from AI');
 
-      return response
+      return response;
     } catch (error) {
-      console.error('Error generating TypeScript types:', error)
-      throw new Error('Failed to generate TypeScript types')
+      console.error('Error generating TypeScript types:', error);
+      throw new Error('Failed to generate TypeScript types');
     }
   }
 
-  static async generateValidationSchemas(schema: SchemaAnalysis): Promise<Record<string, string>> {
+  static async generateValidationSchemas(
+    schema: SchemaAnalysis
+  ): Promise<Record<string, string>> {
     try {
       const prompt = `
         Generate Zod validation schemas for this Prisma schema:
@@ -240,31 +250,32 @@ export class SchemaAwareGenerator {
         - Add helpful error messages
         - Use transforms where needed
         - Include enum validations
-      `
+      `;
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: 'gpt-4',
         messages: [
           {
-            role: "system",
-            content: "You are an expert at generating Zod validation schemas. Create comprehensive, well-structured validation schemas."
+            role: 'system',
+            content:
+              'You are an expert at generating Zod validation schemas. Create comprehensive, well-structured validation schemas.',
           },
           {
-            role: "user",
-            content: prompt
-          }
+            role: 'user',
+            content: prompt,
+          },
         ],
         temperature: 0.2,
-        max_tokens: 4000
-      })
+        max_tokens: 4000,
+      });
 
-      const response = completion.choices[0]?.message?.content
-      if (!response) throw new Error('No response from AI')
+      const response = completion.choices[0]?.message?.content;
+      if (!response) throw new Error('No response from AI');
 
-      return JSON.parse(response)
+      return JSON.parse(response);
     } catch (error) {
-      console.error('Error generating validation schemas:', error)
-      throw new Error('Failed to generate validation schemas')
+      console.error('Error generating validation schemas:', error);
+      throw new Error('Failed to generate validation schemas');
     }
   }
 }

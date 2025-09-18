@@ -1,27 +1,30 @@
-import OpenAI from 'openai'
+import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-})
+});
 
 export interface APIClientConfig {
-  baseURL: string
-  apiKey?: string
-  timeout?: number
-  retries?: number
-  cache?: boolean
+  baseURL: string;
+  apiKey?: string;
+  timeout?: number;
+  retries?: number;
+  cache?: boolean;
 }
 
 export interface GeneratedAPIClient {
-  client: string
-  types: string
-  hooks: string
-  tests: string
-  documentation: string
+  client: string;
+  types: string;
+  hooks: string;
+  tests: string;
+  documentation: string;
 }
 
 export class APIClientGenerator {
-  static async generateFromOpenAPI(openApiSpec: any, config: APIClientConfig): Promise<GeneratedAPIClient> {
+  static async generateFromOpenAPI(
+    openApiSpec: any,
+    config: APIClientConfig
+  ): Promise<GeneratedAPIClient> {
     try {
       const prompt = `
         Generate a complete TypeScript API client based on this OpenAPI specification:
@@ -59,35 +62,39 @@ export class APIClientGenerator {
         - Use React Query patterns for hooks
         
         Return as JSON with keys: client, types, hooks, tests, documentation
-      `
+      `;
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: 'gpt-4',
         messages: [
           {
-            role: "system",
-            content: "You are an expert at generating TypeScript API clients from OpenAPI specifications. Create production-ready, type-safe API clients with comprehensive error handling and React integration."
+            role: 'system',
+            content:
+              'You are an expert at generating TypeScript API clients from OpenAPI specifications. Create production-ready, type-safe API clients with comprehensive error handling and React integration.',
           },
           {
-            role: "user",
-            content: prompt
-          }
+            role: 'user',
+            content: prompt,
+          },
         ],
         temperature: 0.3,
-        max_tokens: 12000
-      })
+        max_tokens: 12000,
+      });
 
-      const response = completion.choices[0]?.message?.content
-      if (!response) throw new Error('No response from AI')
+      const response = completion.choices[0]?.message?.content;
+      if (!response) throw new Error('No response from AI');
 
-      return JSON.parse(response)
+      return JSON.parse(response);
     } catch (error) {
-      console.error('Error generating API client:', error)
-      throw new Error('Failed to generate API client')
+      console.error('Error generating API client:', error);
+      throw new Error('Failed to generate API client');
     }
   }
 
-  static async generateFromPrismaSchema(schema: any, config: APIClientConfig): Promise<GeneratedAPIClient> {
+  static async generateFromPrismaSchema(
+    schema: any,
+    config: APIClientConfig
+  ): Promise<GeneratedAPIClient> {
     try {
       const prompt = `
         Generate a complete TypeScript API client based on this Prisma schema:
@@ -134,31 +141,32 @@ export class APIClientGenerator {
         - Use React Query patterns for hooks
         
         Return as JSON with keys: client, types, hooks, tests, documentation
-      `
+      `;
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: 'gpt-4',
         messages: [
           {
-            role: "system",
-            content: "You are an expert at generating TypeScript API clients from Prisma schemas. Create production-ready, type-safe API clients with comprehensive CRUD operations and React integration."
+            role: 'system',
+            content:
+              'You are an expert at generating TypeScript API clients from Prisma schemas. Create production-ready, type-safe API clients with comprehensive CRUD operations and React integration.',
           },
           {
-            role: "user",
-            content: prompt
-          }
+            role: 'user',
+            content: prompt,
+          },
         ],
         temperature: 0.3,
-        max_tokens: 12000
-      })
+        max_tokens: 12000,
+      });
 
-      const response = completion.choices[0]?.message?.content
-      if (!response) throw new Error('No response from AI')
+      const response = completion.choices[0]?.message?.content;
+      if (!response) throw new Error('No response from AI');
 
-      return JSON.parse(response)
+      return JSON.parse(response);
     } catch (error) {
-      console.error('Error generating API client:', error)
-      throw new Error('Failed to generate API client')
+      console.error('Error generating API client:', error);
+      throw new Error('Failed to generate API client');
     }
   }
 
@@ -186,31 +194,32 @@ export class APIClientGenerator {
         - Financial goals that make sense
         
         Return as JSON with model names as keys and arrays of mock data as values.
-      `
+      `;
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: 'gpt-4',
         messages: [
           {
-            role: "system",
-            content: "You are an expert at generating realistic mock data for financial applications. Create data that makes sense for a personal finance tracker."
+            role: 'system',
+            content:
+              'You are an expert at generating realistic mock data for financial applications. Create data that makes sense for a personal finance tracker.',
           },
           {
-            role: "user",
-            content: prompt
-          }
+            role: 'user',
+            content: prompt,
+          },
         ],
         temperature: 0.7,
-        max_tokens: 8000
-      })
+        max_tokens: 8000,
+      });
 
-      const response = completion.choices[0]?.message?.content
-      if (!response) throw new Error('No response from AI')
+      const response = completion.choices[0]?.message?.content;
+      if (!response) throw new Error('No response from AI');
 
-      return JSON.parse(response)
+      return JSON.parse(response);
     } catch (error) {
-      console.error('Error generating mock data:', error)
-      throw new Error('Failed to generate mock data')
+      console.error('Error generating mock data:', error);
+      throw new Error('Failed to generate mock data');
     }
   }
 }

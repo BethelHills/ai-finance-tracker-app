@@ -1,15 +1,42 @@
 {
   "name": "ai-finance-tracker",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "AI-powered personal finance management with intelligent insights and analytics",
   "private": true,
+  "author": "AI Finance Tracker Team",
+  "license": "MIT",
+  "keywords": [
+    "finance",
+    "ai",
+    "nextjs",
+    "typescript",
+    "tailwindcss",
+    "prisma",
+    "analytics"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:reset": "prisma migrate reset",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "clean": "rm -rf .next out node_modules/.cache",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
@@ -44,10 +71,11 @@
     "next-auth": "^4.24.11",
     "next-themes": "^0.4.6",
     "openai": "^4.20.1",
-    "react": "^18",
+    "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",
-    "react-dom": "^18",
+    "react-dom": "^18.2.0",
     "react-hook-form": "^7.48.2",
+    "react-hot-toast": "^2.6.0",
     "recharts": "^2.8.0",
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
@@ -55,15 +83,30 @@
   },
   "devDependencies": {
     "@hookform/resolvers": "^3.3.2",
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "autoprefixer": "^10.0.1",
-    "eslint": "^8",
-    "eslint-config-next": "14.0.4",
-    "postcss": "^8",
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.2.32",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-plugin-prettier": "^5.5.4",
+    "postcss": "^8.4.32",
+    "prettier": "^3.6.2",
     "prisma": "^5.7.1",
-    "tailwindcss": "^3.3.0",
-    "typescript": "^5"
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.3.3"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

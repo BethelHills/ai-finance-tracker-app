@@ -1,32 +1,32 @@
-import OpenAI from 'openai'
+import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-})
+});
 
 export interface OpenAPISpec {
-  openapi: string
+  openapi: string;
   info: {
-    title: string
-    version: string
-    description: string
-  }
+    title: string;
+    version: string;
+    description: string;
+  };
   servers: Array<{
-    url: string
-    description: string
-  }>
-  paths: Record<string, any>
+    url: string;
+    description: string;
+  }>;
+  paths: Record<string, any>;
   components: {
-    schemas: Record<string, any>
-    securitySchemes: Record<string, any>
-  }
+    schemas: Record<string, any>;
+    securitySchemes: Record<string, any>;
+  };
 }
 
 export interface GeneratedAPIClient {
-  client: string
-  types: string
-  tests: string
-  hooks: string
+  client: string;
+  types: string;
+  tests: string;
+  hooks: string;
 }
 
 export class OpenAPIGenerator {
@@ -57,35 +57,38 @@ export class OpenAPIGenerator {
         - POST /api/ai/optimize-budget - Budget optimization
         
         Return valid OpenAPI 3.0 JSON specification.
-      `
+      `;
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: 'gpt-4',
         messages: [
           {
-            role: "system",
-            content: "You are an expert at generating OpenAPI specifications. Create comprehensive, well-structured API documentation."
+            role: 'system',
+            content:
+              'You are an expert at generating OpenAPI specifications. Create comprehensive, well-structured API documentation.',
           },
           {
-            role: "user",
-            content: prompt
-          }
+            role: 'user',
+            content: prompt,
+          },
         ],
         temperature: 0.2,
-        max_tokens: 8000
-      })
+        max_tokens: 8000,
+      });
 
-      const response = completion.choices[0]?.message?.content
-      if (!response) throw new Error('No response from AI')
+      const response = completion.choices[0]?.message?.content;
+      if (!response) throw new Error('No response from AI');
 
-      return JSON.parse(response)
+      return JSON.parse(response);
     } catch (error) {
-      console.error('Error generating OpenAPI spec:', error)
-      throw new Error('Failed to generate OpenAPI specification')
+      console.error('Error generating OpenAPI spec:', error);
+      throw new Error('Failed to generate OpenAPI specification');
     }
   }
 
-  static async generateAPIClient(openApiSpec: OpenAPISpec): Promise<GeneratedAPIClient> {
+  static async generateAPIClient(
+    openApiSpec: OpenAPISpec
+  ): Promise<GeneratedAPIClient> {
     try {
       const prompt = `
         Generate a TypeScript API client based on this OpenAPI specification:
@@ -108,35 +111,38 @@ export class OpenAPIGenerator {
         - Caching support
         
         Return as JSON with keys: client, types, tests, hooks
-      `
+      `;
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: 'gpt-4',
         messages: [
           {
-            role: "system",
-            content: "You are an expert at generating TypeScript API clients. Create production-ready, type-safe API clients."
+            role: 'system',
+            content:
+              'You are an expert at generating TypeScript API clients. Create production-ready, type-safe API clients.',
           },
           {
-            role: "user",
-            content: prompt
-          }
+            role: 'user',
+            content: prompt,
+          },
         ],
         temperature: 0.3,
-        max_tokens: 8000
-      })
+        max_tokens: 8000,
+      });
 
-      const response = completion.choices[0]?.message?.content
-      if (!response) throw new Error('No response from AI')
+      const response = completion.choices[0]?.message?.content;
+      if (!response) throw new Error('No response from AI');
 
-      return JSON.parse(response)
+      return JSON.parse(response);
     } catch (error) {
-      console.error('Error generating API client:', error)
-      throw new Error('Failed to generate API client')
+      console.error('Error generating API client:', error);
+      throw new Error('Failed to generate API client');
     }
   }
 
-  static async generateAPIDocumentation(openApiSpec: OpenAPISpec): Promise<string> {
+  static async generateAPIDocumentation(
+    openApiSpec: OpenAPISpec
+  ): Promise<string> {
     try {
       const prompt = `
         Generate comprehensive API documentation in Markdown format based on this OpenAPI specification:
@@ -151,31 +157,32 @@ export class OpenAPIGenerator {
         5. Code examples in TypeScript and JavaScript
         6. Rate limiting and best practices
         7. AI-specific endpoints documentation
-      `
+      `;
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: 'gpt-4',
         messages: [
           {
-            role: "system",
-            content: "You are an expert at generating API documentation. Create clear, comprehensive, and well-structured documentation."
+            role: 'system',
+            content:
+              'You are an expert at generating API documentation. Create clear, comprehensive, and well-structured documentation.',
           },
           {
-            role: "user",
-            content: prompt
-          }
+            role: 'user',
+            content: prompt,
+          },
         ],
         temperature: 0.3,
-        max_tokens: 6000
-      })
+        max_tokens: 6000,
+      });
 
-      const response = completion.choices[0]?.message?.content
-      if (!response) throw new Error('No response from AI')
+      const response = completion.choices[0]?.message?.content;
+      if (!response) throw new Error('No response from AI');
 
-      return response
+      return response;
     } catch (error) {
-      console.error('Error generating API documentation:', error)
-      throw new Error('Failed to generate API documentation')
+      console.error('Error generating API documentation:', error);
+      throw new Error('Failed to generate API documentation');
     }
   }
 }

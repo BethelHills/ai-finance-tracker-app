@@ -1,15 +1,15 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 export function formatCurrency(amount: number, currency = 'USD') {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
-  }).format(amount)
+  }).format(amount);
 }
 
 export function formatDate(date: Date | string) {
@@ -17,18 +17,18 @@ export function formatDate(date: Date | string) {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
-  })
+  });
 }
 
 export function formatPercentage(value: number, decimals = 1) {
-  return `${value.toFixed(decimals)}%`
+  return `${value.toFixed(decimals)}%`;
 }
 
 export function calculatePercentageChange(current: number, previous: number) {
-  if (previous === 0) return 0
-  return ((current - previous) / previous) * 100
+  if (previous === 0) return 0;
+  return ((current - previous) / previous) * 100;
 }
 
 export function generateId() {
-  return Math.random().toString(36).substr(2, 9)
+  return Math.random().toString(36).substr(2, 9);
 }

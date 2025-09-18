@@ -1,34 +1,42 @@
-import OpenAI from 'openai'
+import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Initialize OpenAI client only when API key is available
+const getOpenAIClient = () => {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY environment variable is required');
+  }
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+};
 
 export interface ComponentRequirements {
-  name: string
-  description: string
+  name: string;
+  description: string;
   props: Array<{
-    name: string
-    type: string
-    required: boolean
-    description?: string
-  }>
-  features: string[]
-  styling?: 'tailwind' | 'css-modules' | 'styled-components'
-  accessibility?: boolean
-  responsive?: boolean
+    name: string;
+    type: string;
+    required: boolean;
+    description?: string;
+  }>;
+  features: string[];
+  styling?: 'tailwind' | 'css-modules' | 'styled-components';
+  accessibility?: boolean;
+  responsive?: boolean;
 }
 
 export interface GeneratedComponent {
-  component: string
-  types: string
-  tests: string
-  storybook: string
-  documentation: string
+  component: string;
+  types: string;
+  tests: string;
+  storybook: string;
+  documentation: string;
 }
 
 export class AICodeGenerator {
-  static async generateComponent(requirements: ComponentRequirements): Promise<GeneratedComponent> {
+  static async generateComponent(
+    requirements: ComponentRequirements
+  ): Promise<GeneratedComponent> {
     try {
       const prompt = `
         Generate a React component for the AI Finance Tracker application.
@@ -58,39 +66,42 @@ export class AICodeGenerator {
         - Use the existing design system colors and spacing
         
         Return as JSON with keys: component, types, tests, storybook, documentation
-      `
+      `;
 
+      const openai = getOpenAIClient();
       const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: 'gpt-4',
         messages: [
           {
-            role: "system",
-            content: "You are an expert React/TypeScript developer. Generate high-quality, production-ready code that follows best practices. Always return valid JSON."
+            role: 'system',
+            content:
+              'You are an expert React/TypeScript developer. Generate high-quality, production-ready code that follows best practices. Always return valid JSON.',
           },
           {
-            role: "user",
-            content: prompt
+            role: 'user',
+            content: prompt,
+          },
         ],
         temperature: 0.3,
-        max_tokens: 4000
-      })
+        max_tokens: 4000,
+      });
 
-      const response = completion.choices[0]?.message?.content
-      if (!response) throw new Error('No response from AI')
+      const response = completion.choices[0]?.message?.content;
+      if (!response) throw new Error('No response from AI');
 
-      return JSON.parse(response)
+      return JSON.parse(response);
     } catch (error) {
-      console.error('Error generating component:', error)
-      throw new Error('Failed to generate component')
+      console.error('Error generating component:', error);
+      throw new Error('Failed to generate component');
     }
   }
 
   static async generateHook(requirements: {
-    name: string
-    description: string
-    parameters: Array<{ name: string; type: string; description: string }>
-    returnType: string
-    dependencies?: string[]
+    name: string;
+    description: string;
+    parameters: Array<{ name: string; type: string; description: string }>;
+    returnType: string;
+    dependencies?: string[];
   }): Promise<{ hook: string; types: string; tests: string }> {
     try {
       const prompt = `
@@ -111,41 +122,43 @@ export class AICodeGenerator {
         - Be optimized for performance
         
         Return as JSON with keys: hook, types, tests
-      `
+      `;
 
+      const openai = getOpenAIClient();
       const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: 'gpt-4',
         messages: [
           {
-            role: "system",
-            content: "You are an expert React developer specializing in custom hooks. Generate clean, reusable, and well-typed hooks."
+            role: 'system',
+            content:
+              'You are an expert React developer specializing in custom hooks. Generate clean, reusable, and well-typed hooks.',
           },
           {
-            role: "user",
-            content: prompt
-          }
+            role: 'user',
+            content: prompt,
+          },
         ],
         temperature: 0.3,
-        max_tokens: 3000
-      })
+        max_tokens: 3000,
+      });
 
-      const response = completion.choices[0]?.message?.content
-      if (!response) throw new Error('No response from AI')
+      const response = completion.choices[0]?.message?.content;
+      if (!response) throw new Error('No response from AI');
 
-      return JSON.parse(response)
+      return JSON.parse(response);
     } catch (error) {
-      console.error('Error generating hook:', error)
-      throw new Error('Failed to generate hook')
+      console.error('Error generating hook:', error);
+      throw new Error('Failed to generate hook');
     }
   }
 
   static async generateAPIEndpoint(requirements: {
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE'
-    path: string
-    description: string
-    parameters?: Array<{ name: string; type: string; required: boolean }>
-    responseType: string
-    authentication?: boolean
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+    path: string;
+    description: string;
+    parameters?: Array<{ name: string; type: string; required: boolean }>;
+    responseType: string;
+    authentication?: boolean;
   }): Promise<{ endpoint: string; types: string; tests: string }> {
     try {
       const prompt = `
@@ -168,45 +181,47 @@ export class AICodeGenerator {
         - Follow REST API best practices
         
         Return as JSON with keys: endpoint, types, tests
-      `
+      `;
 
+      const openai = getOpenAIClient();
       const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: 'gpt-4',
         messages: [
           {
-            role: "system",
-            content: "You are an expert Next.js developer. Generate secure, well-structured API endpoints that follow best practices."
+            role: 'system',
+            content:
+              'You are an expert Next.js developer. Generate secure, well-structured API endpoints that follow best practices.',
           },
           {
-            role: "user",
-            content: prompt
-          }
+            role: 'user',
+            content: prompt,
+          },
         ],
         temperature: 0.3,
-        max_tokens: 3000
-      })
+        max_tokens: 3000,
+      });
 
-      const response = completion.choices[0]?.message?.content
-      if (!response) throw new Error('No response from AI')
+      const response = completion.choices[0]?.message?.content;
+      if (!response) throw new Error('No response from AI');
 
-      return JSON.parse(response)
+      return JSON.parse(response);
     } catch (error) {
-      console.error('Error generating API endpoint:', error)
-      throw new Error('Failed to generate API endpoint')
+      console.error('Error generating API endpoint:', error);
+      throw new Error('Failed to generate API endpoint');
     }
   }
 
   static async generateDatabaseModel(requirements: {
-    name: string
-    description: string
+    name: string;
+    description: string;
     fields: Array<{
-      name: string
-      type: string
-      required: boolean
-      unique?: boolean
-      relation?: { model: string; type: string }
-    }>
-    indexes?: string[]
+      name: string;
+      type: string;
+      required: boolean;
+      unique?: boolean;
+      relation?: { model: string; type: string };
+    }>;
+    indexes?: string[];
   }): Promise<{ model: string; migration: string }> {
     try {
       const prompt = `
@@ -228,31 +243,33 @@ export class AICodeGenerator {
         Also generate the corresponding migration SQL.
         
         Return as JSON with keys: model, migration
-      `
+      `;
 
+      const openai = getOpenAIClient();
       const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: 'gpt-4',
         messages: [
           {
-            role: "system",
-            content: "You are an expert database designer. Generate well-structured Prisma models that follow best practices for performance and data integrity."
+            role: 'system',
+            content:
+              'You are an expert database designer. Generate well-structured Prisma models that follow best practices for performance and data integrity.',
           },
           {
-            role: "user",
-            content: prompt
-          }
+            role: 'user',
+            content: prompt,
+          },
         ],
         temperature: 0.3,
-        max_tokens: 3000
-      })
+        max_tokens: 3000,
+      });
 
-      const response = completion.choices[0]?.message?.content
-      if (!response) throw new Error('No response from AI')
+      const response = completion.choices[0]?.message?.content;
+      if (!response) throw new Error('No response from AI');
 
-      return JSON.parse(response)
+      return JSON.parse(response);
     } catch (error) {
-      console.error('Error generating database model:', error)
-      throw new Error('Failed to generate database model')
+      console.error('Error generating database model:', error);
+      throw new Error('Failed to generate database model');
     }
   }
 }
