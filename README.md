@@ -11,7 +11,7 @@
 
 ## 🚀 Live Demo
 
-**[🌐 View Live Demo on Vercel](https://ai-finance-tracker-7ixxognzf-bethelhills-projects.vercel.app/)**
+**[🌐 View Live Demo on Vercel](https://ai-finance-tracker-rc8zwd1rz-bethelhills-projects.vercel.app/)**
 
 Experience the full application with all features including:
 - ✅ AI-powered transaction categorization
@@ -26,7 +26,7 @@ Experience the full application with all features including:
 
 ### 🚀 Quick Start
 
-1. **Visit the live demo**: [ai-finance-tracker-7ixxognzf-bethelhills-projects.vercel.app](https://ai-finance-tracker-7ixxognzf-bethelhills-projects.vercel.app/)
+1. **Visit the live demo**: [ai-finance-tracker-rc8zwd1rz-bethelhills-projects.vercel.app](https://ai-finance-tracker-rc8zwd1rz-bethelhills-projects.vercel.app/)
 2. **Try the features**:
    - Add sample transactions
    - Explore the dashboard
