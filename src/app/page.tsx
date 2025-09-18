@@ -1,4 +1,4 @@
-import { Dashboard } from '@/components/dashboard'
+import { EnhancedDashboard } from '@/components/enhanced-dashboard'
 import { Header } from '@/components/header'
 import { Sidebar } from '@/components/sidebar'
 
@@ -9,7 +9,7 @@ export default function Home() {
       <div className="flex">
         <Sidebar />
         <main className="flex-1 p-6">
-          <Dashboard />
+          <EnhancedDashboard />
         </main>
       </div>
     </div>
