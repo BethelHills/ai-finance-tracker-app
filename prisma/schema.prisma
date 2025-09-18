@@ -1,0 +1,211 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  accounts     Account[]
+  transactions Transaction[]
+  budgets      Budget[]
+  goals        FinancialGoal[]
+  categories   Category[]
+  insights    Insight[]
+
+  @@map("users")
+}
+
+model Account {
+  id          String  @id @default(cuid())
+  name        String
+  type        AccountType
+  balance     Decimal @default(0)
+  currency    String  @default("USD")
+  isActive    Boolean @default(true)
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@map("accounts")
+}
+
+model Transaction {
+  id          String            @id @default(cuid())
+  amount      Decimal
+  description String
+  date        DateTime
+  type        TransactionType
+  categoryId  String?
+  accountId   String
+  userId      String
+  isRecurring Boolean           @default(false)
+  metadata    Json?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // AI-generated fields
+  aiCategory    String?
+  aiConfidence  Float?
+  aiTags        String[]
+  aiInsights    String?
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account  Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@map("transactions")
+}
+
+model Category {
+  id          String  @id @default(cuid())
+  name        String
+  color       String
+  icon        String?
+  parentId    String?
+  userId      String
+  isDefault   Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent       Category?     @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children     Category[]    @relation("CategoryHierarchy")
+  transactions Transaction[]
+
+  @@map("categories")
+}
+
+model Budget {
+  id          String      @id @default(cuid())
+  name        String
+  amount      Decimal
+  spent       Decimal     @default(0)
+  period      BudgetPeriod
+  startDate   DateTime
+  endDate     DateTime
+  categoryId  String?
+  userId      String
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // AI-generated fields
+  aiRecommendations String?
+  aiAlerts         String[]
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@map("budgets")
+}
+
+model FinancialGoal {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  targetAmount Decimal
+  currentAmount Decimal     @default(0)
+  targetDate  DateTime
+  type        GoalType
+  priority    Priority      @default(MEDIUM)
+  isCompleted Boolean       @default(false)
+  userId      String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // AI-generated fields
+  aiProgressAnalysis String?
+  aiRecommendations  String?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("financial_goals")
+}
+
+model Insight {
+  id          String      @id @default(cuid())
+  title       String
+  content     String
+  type        InsightType
+  priority    Priority    @default(MEDIUM)
+  isRead      Boolean     @default(false)
+  userId      String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("insights")
+}
+
+// Enums
+enum AccountType {
+  CHECKING
+  SAVINGS
+  CREDIT_CARD
+  INVESTMENT
+  CASH
+  LOAN
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+enum BudgetPeriod {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum GoalType {
+  EMERGENCY_FUND
+  VACATION
+  HOME_PURCHASE
+  RETIREMENT
+  DEBT_PAYOFF
+  INVESTMENT
+  CUSTOM
+}
+
+enum InsightType {
+  SPENDING_ANALYSIS
+  BUDGET_ALERT
+  GOAL_PROGRESS
+  INVESTMENT_OPPORTUNITY
+  SAVINGS_TIP
+  RISK_ASSESSMENT
+  CASH_FLOW_FORECAST
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
