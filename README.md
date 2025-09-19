@@ -9,30 +9,14 @@
 
 > An intelligent personal finance management application powered by AI to provide insights, automated categorization, and personalized financial advice.
 
-## 🚀 Live Demo
+## Live Demo  
+[AI Finance Tracker - Live on Vercel](https://ai-finance-tracker-mkidf8ilt-bethelhills-projects.vercel.app)  
 
-**[🌐 View Live Demo on Vercel](https://ai-finance-tracker-mkidf8ilt-bethelhills-projects.vercel.app/)**
-
-Experience the full application with all features including:
-- ✅ AI-powered transaction categorization
-- ✅ Real-time financial insights
-- ✅ Interactive dashboards and charts
-- ✅ User authentication and settings
-- ✅ Toast notifications and responsive design
-
-### 🎥 Demo Video
-
-*Coming soon: Watch a comprehensive demo video showcasing all features*
-
-### 🚀 Quick Start
-
-1. **Visit the live demo**: [ai-finance-tracker-mkidf8ilt-bethelhills-projects.vercel.app](https://ai-finance-tracker-mkidf8ilt-bethelhills-projects.vercel.app/)
-2. **Try the features**:
-   - Add sample transactions
-   - Explore the dashboard
-   - Test search and filtering
-   - Check out the settings panel
-3. **No signup required** for the demo version
+## Features  
+- Google OAuth login (via NextAuth.js)  
+- Next.js App Router  
+- TailwindCSS UI  
+- AI-powered code generation (coming soon)
 
 ## 📸 Screenshots
 
