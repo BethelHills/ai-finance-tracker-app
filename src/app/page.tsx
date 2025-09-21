@@ -8,6 +8,9 @@ import { SearchFilter } from '@/components/search-filter';
 import { MonthlyReport } from '@/components/monthly-report';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { AccountLinking } from '@/components/account-linking';
+import { TransactionReconciliation } from '@/components/transactions/transaction-reconciliation';
+import { AuditLogViewer } from '@/components/admin/audit-log-viewer';
+import { OnboardingFlow } from '@/components/onboarding/onboarding-flow';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Force dynamic rendering to avoid static generation issues with useSession
@@ -34,36 +37,46 @@ export default function Home() {
               <ThemeToggle />
             </div>
 
-            {/* Main Content Tabs */}
-            <Tabs defaultValue='dashboard' className='space-y-6'>
-              <TabsList className='grid w-full grid-cols-2 lg:grid-cols-5'>
-                <TabsTrigger value='dashboard'>Dashboard</TabsTrigger>
-                <TabsTrigger value='transactions'>Transactions</TabsTrigger>
-                <TabsTrigger value='analytics'>Analytics</TabsTrigger>
-                <TabsTrigger value='reports'>Reports</TabsTrigger>
-                <TabsTrigger value='accounts'>Accounts</TabsTrigger>
-              </TabsList>
+                {/* Main Content Tabs */}
+                <Tabs defaultValue='dashboard' className='space-y-6'>
+                  <TabsList className='grid w-full grid-cols-2 lg:grid-cols-7'>
+                    <TabsTrigger value='dashboard'>Dashboard</TabsTrigger>
+                    <TabsTrigger value='transactions'>Transactions</TabsTrigger>
+                    <TabsTrigger value='reconciliation'>Reconciliation</TabsTrigger>
+                    <TabsTrigger value='analytics'>Analytics</TabsTrigger>
+                    <TabsTrigger value='reports'>Reports</TabsTrigger>
+                    <TabsTrigger value='accounts'>Accounts</TabsTrigger>
+                    <TabsTrigger value='admin'>Admin</TabsTrigger>
+                  </TabsList>
 
-              <TabsContent value='dashboard' className='space-y-6'>
-                <EnhancedFinancialDashboard />
-              </TabsContent>
+                  <TabsContent value='dashboard' className='space-y-6'>
+                    <EnhancedFinancialDashboard />
+                  </TabsContent>
 
-              <TabsContent value='transactions' className='space-y-6'>
-                <TransactionsPage />
-              </TabsContent>
+                  <TabsContent value='transactions' className='space-y-6'>
+                    <TransactionsPage />
+                  </TabsContent>
 
-              <TabsContent value='analytics' className='space-y-6'>
-                <AnalyticsDashboard />
-              </TabsContent>
+                  <TabsContent value='reconciliation' className='space-y-6'>
+                    <TransactionReconciliation />
+                  </TabsContent>
 
-              <TabsContent value='reports' className='space-y-6'>
-                <MonthlyReport />
-              </TabsContent>
+                  <TabsContent value='analytics' className='space-y-6'>
+                    <AnalyticsDashboard />
+                  </TabsContent>
 
-              <TabsContent value='accounts' className='space-y-6'>
-                <AccountLinking />
-              </TabsContent>
-            </Tabs>
+                  <TabsContent value='reports' className='space-y-6'>
+                    <MonthlyReport />
+                  </TabsContent>
+
+                  <TabsContent value='accounts' className='space-y-6'>
+                    <AccountLinking />
+                  </TabsContent>
+
+                  <TabsContent value='admin' className='space-y-6'>
+                    <AuditLogViewer />
+                  </TabsContent>
+                </Tabs>
           </div>
         </main>
       </div>
