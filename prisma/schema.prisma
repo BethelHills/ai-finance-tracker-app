@@ -34,6 +34,7 @@ model User {
   categories   Category[]
   insights    Insight[]
   ledgerEntries LedgerEntry[]
+  transferRecipients TransferRecipient[]
 
   @@map("users")
 }
@@ -198,6 +199,27 @@ model LedgerEntry {
   account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
   @@map("ledger_entries")
+}
+
+model TransferRecipient {
+  id                  String    @id @default(cuid())
+  userId              String
+  paystackRecipientId String    @unique
+  name                String
+  email               String
+  accountNumber       String
+  bankCode            String
+  bankName            String
+  description         String?
+  isActive            Boolean   @default(true)
+  lastUsedAt          DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("transfer_recipients")
 }
 
 enum LedgerType {

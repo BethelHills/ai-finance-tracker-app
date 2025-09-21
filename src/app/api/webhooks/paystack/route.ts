@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { PrismaClient } from '@prisma/client';
+import { LedgerService } from '@/lib/database/ledger-models';
 
 const prisma = new PrismaClient();
 
@@ -136,10 +137,8 @@ async function handleChargeSuccess(data: any) {
   // Update transaction status in database
   await prisma.transaction.updateMany({
     where: {
-      metadata: {
-        path: ['paystackReference'],
-        equals: data.reference,
-      },
+      external_id: data.reference,
+      provider: 'paystack',
     },
     data: {
       status: 'completed',
@@ -159,10 +158,8 @@ async function handleChargeFailed(data: any) {
   
   await prisma.transaction.updateMany({
     where: {
-      metadata: {
-        path: ['paystackReference'],
-        equals: data.reference,
-      },
+      external_id: data.reference,
+      provider: 'paystack',
     },
     data: {
       status: 'failed',
@@ -178,62 +175,109 @@ async function handleChargeFailed(data: any) {
 async function handleTransferSuccess(data: any) {
   console.log('Transfer successful:', data.reference);
   
-  await prisma.transaction.updateMany({
+  // Find the transaction by reference
+  const transaction = await prisma.transaction.findFirst({
     where: {
-      metadata: {
-        path: ['paystackReference'],
-        equals: data.reference,
-      },
-    },
-    data: {
-      status: 'completed',
-      metadata: {
-        paystackData: data,
-        processedAt: new Date().toISOString(),
-      },
+      external_id: data.reference,
+      provider: 'paystack',
     },
   });
+
+  if (transaction) {
+    // Update transaction status
+    await LedgerService.updateTransactionStatus(
+      transaction.id,
+      'completed',
+      {
+        paystackData: data,
+        processedAt: new Date().toISOString(),
+        paystackStatus: data.status,
+      }
+    );
+
+    // Update recipient last used
+    await prisma.transferRecipient.updateMany({
+      where: {
+        paystackRecipientId: data.recipient.id.toString(),
+      },
+      data: {
+        lastUsedAt: new Date(),
+      },
+    });
+  }
 }
 
 async function handleTransferFailed(data: any) {
   console.log('Transfer failed:', data.reference);
   
-  await prisma.transaction.updateMany({
+  // Find the transaction by reference
+  const transaction = await prisma.transaction.findFirst({
     where: {
-      metadata: {
-        path: ['paystackReference'],
-        equals: data.reference,
-      },
-    },
-    data: {
-      status: 'failed',
-      metadata: {
-        paystackData: data,
-        error: data.failure_reason,
-        processedAt: new Date().toISOString(),
-      },
+      external_id: data.reference,
+      provider: 'paystack',
     },
   });
+
+  if (transaction) {
+    // Update transaction status
+    await LedgerService.updateTransactionStatus(
+      transaction.id,
+      'failed',
+      {
+        paystackData: data,
+        error: data.failure_reason || 'Transfer failed',
+        processedAt: new Date().toISOString(),
+        paystackStatus: data.status,
+      }
+    );
+
+    // Reverse the account balance if it was previously completed
+    if (transaction.status === 'completed') {
+      await prisma.account.update({
+        where: { id: transaction.accountId },
+        data: {
+          balance: {
+            increment: Math.abs(transaction.amount), // Add back the amount
+          },
+        },
+      });
+    }
+  }
 }
 
 async function handleTransferReversed(data: any) {
   console.log('Transfer reversed:', data.reference);
   
-  await prisma.transaction.updateMany({
+  // Find the transaction by reference
+  const transaction = await prisma.transaction.findFirst({
     where: {
-      metadata: {
-        path: ['paystackReference'],
-        equals: data.reference,
-      },
-    },
-    data: {
-      status: 'reversed',
-      metadata: {
-        paystackData: data,
-        processedAt: new Date().toISOString(),
-      },
+      external_id: data.reference,
+      provider: 'paystack',
     },
   });
+
+  if (transaction) {
+    // Update transaction status
+    await LedgerService.updateTransactionStatus(
+      transaction.id,
+      'reversed',
+      {
+        paystackData: data,
+        processedAt: new Date().toISOString(),
+        paystackStatus: data.status,
+      }
+    );
+
+    // Reverse the account balance
+    await prisma.account.update({
+      where: { id: transaction.accountId },
+      data: {
+        balance: {
+          increment: Math.abs(transaction.amount), // Add back the amount
+        },
+      },
+    });
+  }
 }
 
 async function handleSubscriptionCreate(data: any) {
