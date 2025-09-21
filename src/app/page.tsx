@@ -11,6 +11,12 @@ import { AccountLinking } from '@/components/account-linking';
 import { TransactionReconciliation } from '@/components/transactions/transaction-reconciliation';
 import { AuditLogViewer } from '@/components/admin/audit-log-viewer';
 import { OnboardingFlow } from '@/components/onboarding/onboarding-flow';
+import { AIInsightsDashboard } from '@/components/ai/ai-insights-dashboard';
+import { PlaidLinkFlow } from '@/components/plaid/plaid-link-flow';
+import { NigerianPaymentFlow } from '@/components/payments/nigerian-payment-flow';
+import { BusinessRegistration } from '@/components/compliance/business-registration';
+import { TransactionLedger } from '@/components/ledger/transaction-ledger';
+import { KYCCompliance } from '@/components/compliance/kyc-compliance';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Force dynamic rendering to avoid static generation issues with useSession
@@ -39,13 +45,16 @@ export default function Home() {
 
                 {/* Main Content Tabs */}
                 <Tabs defaultValue='dashboard' className='space-y-6'>
-                  <TabsList className='grid w-full grid-cols-2 lg:grid-cols-7'>
+                  <TabsList className='grid w-full grid-cols-2 lg:grid-cols-10'>
                     <TabsTrigger value='dashboard'>Dashboard</TabsTrigger>
                     <TabsTrigger value='transactions'>Transactions</TabsTrigger>
                     <TabsTrigger value='reconciliation'>Reconciliation</TabsTrigger>
+                    <TabsTrigger value='ai-insights'>AI Insights</TabsTrigger>
+                    <TabsTrigger value='payments'>Payments</TabsTrigger>
+                    <TabsTrigger value='ledger'>Ledger</TabsTrigger>
+                    <TabsTrigger value='compliance'>Compliance</TabsTrigger>
                     <TabsTrigger value='analytics'>Analytics</TabsTrigger>
                     <TabsTrigger value='reports'>Reports</TabsTrigger>
-                    <TabsTrigger value='accounts'>Accounts</TabsTrigger>
                     <TabsTrigger value='admin'>Admin</TabsTrigger>
                   </TabsList>
 
@@ -59,6 +68,22 @@ export default function Home() {
 
                   <TabsContent value='reconciliation' className='space-y-6'>
                     <TransactionReconciliation />
+                  </TabsContent>
+
+                  <TabsContent value='ai-insights' className='space-y-6'>
+                    <AIInsightsDashboard />
+                  </TabsContent>
+
+                  <TabsContent value='payments' className='space-y-6'>
+                    <NigerianPaymentFlow />
+                  </TabsContent>
+
+                  <TabsContent value='ledger' className='space-y-6'>
+                    <TransactionLedger />
+                  </TabsContent>
+
+                  <TabsContent value='compliance' className='space-y-6'>
+                    <KYCCompliance />
                   </TabsContent>
 
                   <TabsContent value='analytics' className='space-y-6'>
