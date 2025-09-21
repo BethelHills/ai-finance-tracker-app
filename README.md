@@ -10,7 +10,7 @@
 > An intelligent personal finance management application powered by AI to provide insights, automated categorization, and personalized financial advice.
 
 ## Live Demo  
-[AI Finance Tracker - Live on Vercel](https://ai-finance-tracker-mkidf8ilt-bethelhills-projects.vercel.app)  
+[AI Finance Tracker - Live on Vercel](https://ai-finance-tracker-rldzwhtxc-bethelhills-projects.vercel.app)  
 
 ## Features  
 - Google OAuth login (via NextAuth.js)  

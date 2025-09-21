@@ -6,6 +6,7 @@ import { AnalyticsDashboard } from '@/components/analytics-dashboard';
 import { SearchFilter } from '@/components/search-filter';
 import { MonthlyReport } from '@/components/monthly-report';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { AccountLinking } from '@/components/account-linking';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Force dynamic rendering to avoid static generation issues with useSession
@@ -34,11 +35,12 @@ export default function Home() {
 
             {/* Main Content Tabs */}
             <Tabs defaultValue='dashboard' className='space-y-6'>
-              <TabsList className='grid w-full grid-cols-2 lg:grid-cols-4'>
+              <TabsList className='grid w-full grid-cols-2 lg:grid-cols-5'>
                 <TabsTrigger value='dashboard'>Dashboard</TabsTrigger>
                 <TabsTrigger value='transactions'>Transactions</TabsTrigger>
                 <TabsTrigger value='analytics'>Analytics</TabsTrigger>
                 <TabsTrigger value='reports'>Reports</TabsTrigger>
+                <TabsTrigger value='accounts'>Accounts</TabsTrigger>
               </TabsList>
 
               <TabsContent value='dashboard' className='space-y-6'>
@@ -55,6 +57,10 @@ export default function Home() {
 
               <TabsContent value='reports' className='space-y-6'>
                 <MonthlyReport />
+              </TabsContent>
+
+              <TabsContent value='accounts' className='space-y-6'>
+                <AccountLinking />
               </TabsContent>
             </Tabs>
           </div>
