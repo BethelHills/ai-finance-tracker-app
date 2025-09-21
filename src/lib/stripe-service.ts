@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
+  apiVersion: '2025-08-27.basil',
 });
 
 export interface StripeAccount {
@@ -45,7 +45,7 @@ export class StripeService {
       return {
         id: account.id,
         email: account.email || email,
-        country: account.country,
+        country: account.country || 'US',
         currency: account.default_currency || 'usd',
         capabilities: Object.keys(account.capabilities || {}),
         charges_enabled: account.charges_enabled || false,

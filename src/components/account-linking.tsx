@@ -108,18 +108,11 @@ export function AccountLinking() {
       setLinkToken(link_token);
       
       // Open Plaid Link (you would integrate with Plaid Link component here)
-      toast({
-        title: 'Plaid Link Ready',
-        description: 'Plaid Link is ready to connect your bank accounts.',
-      });
+      toast.success('Plaid Link is ready to connect your bank accounts.');
       
     } catch (error) {
       console.error('Error initiating Plaid link:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to initiate Plaid link',
-        variant: 'destructive',
-      });
+      toast.error('Failed to initiate Plaid link');
     } finally {
       setLoading(false);
     }
@@ -151,11 +144,7 @@ export function AccountLinking() {
       
     } catch (error) {
       console.error('Error creating Stripe account:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create Stripe account',
-        variant: 'destructive',
-      });
+      toast.error('Failed to create Stripe account');
     } finally {
       setLoading(false);
     }
@@ -168,19 +157,12 @@ export function AccountLinking() {
       const response = await fetch('/api/plaid/transactions');
       if (response.ok) {
         const { transactions } = await response.json();
-        toast({
-          title: 'Success',
-          description: `Synced ${transactions.length} transactions`,
-        });
+        toast.success(`Synced ${transactions.length} transactions`);
         loadAccounts(); // Refresh accounts
       }
     } catch (error) {
       console.error('Error syncing transactions:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to sync transactions',
-        variant: 'destructive',
-      });
+      toast.error('Failed to sync transactions');
     } finally {
       setLoading(false);
     }

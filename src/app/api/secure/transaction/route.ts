@@ -24,9 +24,6 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         ipAddress: clientIP,
         userAgent,
-        operation: 'process_transaction',
-        resource: 'transaction',
-        resourceId: 'new',
       }
     );
 

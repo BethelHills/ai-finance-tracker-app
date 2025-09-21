@@ -240,6 +240,9 @@ export class SecureBusinessServer {
             description: paymentData.description,
             type: 'EXPENSE',
             userId,
+            accountId: (await prisma.account.findFirst({
+              where: { userId }
+            }))?.id || '',
             date: new Date(),
             metadata: {
               provider: paymentData.provider,
@@ -307,6 +310,8 @@ export class SecureBusinessServer {
         await this.logAuditEvent({
           ...context,
           action: 'data_exported',
+          resource: 'user_data',
+          resourceId: userId,
           details: { exportType, recordCount: Object.keys(exportData).length },
         });
 

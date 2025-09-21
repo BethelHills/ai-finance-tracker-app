@@ -28,6 +28,14 @@ export function useToast() {
   };
 
   return {
+    toast: {
+      success: showSuccess,
+      error: showError,
+      loading: showLoading,
+      info: showInfo,
+      dismiss,
+      dismissAll,
+    },
     success: showSuccess,
     error: showError,
     loading: showLoading,

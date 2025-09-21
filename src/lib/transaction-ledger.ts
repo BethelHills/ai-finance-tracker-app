@@ -8,13 +8,13 @@ export interface LedgerEntry {
   userId: string;
   accountId: string;
   transactionId: string;
-  amount: number;
-  balance: number;
+  amount: any; // Prisma Decimal type
+  balance: any; // Prisma Decimal type
   type: 'DEBIT' | 'CREDIT';
   description: string;
   reference: string;
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: any;
 }
 
 export interface AccountBalance {

@@ -85,11 +85,7 @@ export function EnhancedFinancialDashboard() {
 
     } catch (error) {
       console.error('Error loading dashboard data:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load dashboard data',
-        variant: 'destructive',
-      });
+      toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -102,18 +98,11 @@ export function EnhancedFinancialDashboard() {
       });
       
       if (response.ok) {
-        toast({
-          title: 'Success',
-          description: 'Account reconciliation started',
-        });
+        toast.success('Account reconciliation started');
         loadDashboardData();
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to start reconciliation',
-        variant: 'destructive',
-      });
+      toast.error('Failed to start reconciliation');
     }
   };
 

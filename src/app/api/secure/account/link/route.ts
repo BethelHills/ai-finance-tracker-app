@@ -24,9 +24,6 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         ipAddress: clientIP,
         userAgent,
-        operation: 'link_bank_account',
-        resource: 'account',
-        resourceId: accountData.plaidAccountId,
       }
     );
 

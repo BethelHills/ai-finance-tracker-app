@@ -131,15 +131,18 @@ export class QueueProcessors {
   // Reconciliation Processor
   static async processReconciliation(job: Job<ReconciliationJob>) {
     const { userId, provider, accountId, startDate, endDate } = job.data;
+    let jobId: string | undefined;
+    let MongoService: any;
     
     try {
       console.log(`Processing reconciliation for user ${userId}, provider ${provider}`);
       
       // Import MongoDBService
       const { MongoDBService } = await import('./mongodb-models');
+      MongoService = MongoDBService;
       
       // Create reconciliation job record
-      const jobId = await MongoDBService.createReconciliationJob({
+      jobId = await MongoService.createReconciliationJob({
         userId,
         provider,
         status: 'processing',
@@ -192,6 +195,9 @@ export class QueueProcessors {
                       date: new Date(transaction.date),
                       type: transaction.amount > 0 ? 'INCOME' : 'EXPENSE',
                       userId,
+                      accountId: (await prisma.account.findFirst({
+                        where: { plaidAccountId: transaction.account_id }
+                      }))?.id || '',
                       plaidTransactionId: transaction.transaction_id,
                       plaidAccountId: transaction.account_id,
                     },
@@ -217,7 +223,7 @@ export class QueueProcessors {
       }
 
       // Update reconciliation job
-      await MongoDBService.updateReconciliationJob(jobId, {
+      await MongoService.updateReconciliationJob(jobId, {
         status: 'completed',
         completedAt: new Date(),
         recordsProcessed,
@@ -231,10 +237,16 @@ export class QueueProcessors {
       console.error(`Reconciliation failed for user ${userId}:`, error);
       
       // Update job status to failed
-      await MongoDBService.updateReconciliationJob(jobId, {
-        status: 'failed',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
+      if (jobId) {
+        try {
+          await MongoService.updateReconciliationJob(jobId, {
+            status: 'failed',
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        } catch (updateError) {
+          console.error('Failed to update reconciliation job status:', updateError);
+        }
+      }
       
       throw error;
     }
@@ -275,6 +287,7 @@ export class QueueProcessors {
       console.error(`Webhook processing failed for ${provider} - ${eventType}:`, error);
       
       // Mark webhook as processed with error
+      const { MongoDBService } = await import('./mongodb-models');
       await MongoDBService.markWebhookProcessed(eventId, error instanceof Error ? error.message : 'Unknown error');
       
       throw error;
@@ -320,6 +333,7 @@ export class QueueProcessors {
         model: 'gpt-3.5-turbo',
         tokens: 100, // Estimate
         cost: 0.0001, // Estimate
+        timestamp: new Date(),
         category: 'transaction_categorization',
         metadata: {
           transactionId,

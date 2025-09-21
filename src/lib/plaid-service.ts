@@ -53,8 +53,8 @@ export class PlaidService {
           client_user_id: userId,
         },
         client_name: 'AI Finance Tracker',
-        products: ['transactions', 'auth', 'identity'],
-        country_codes: ['US', 'CA', 'GB', 'NG'], // Including Nigeria
+        products: ['transactions', 'auth', 'identity'] as any,
+        country_codes: ['US', 'CA', 'GB', 'NG'] as any, // Including Nigeria
         language: 'en',
         webhook: `${process.env.NEXTAUTH_URL}/api/webhooks/plaid`,
       };
@@ -92,7 +92,7 @@ export class PlaidService {
       };
 
       const response = await plaidClient.accountsGet(request);
-      return response.data.accounts;
+      return response.data.accounts as PlaidAccount[];
     } catch (error) {
       console.error('Error fetching accounts:', error);
       throw new Error('Failed to fetch accounts');
@@ -111,15 +111,14 @@ export class PlaidService {
     try {
       const request: TransactionsGetRequest = {
         access_token: accessToken,
-        account_ids: [accountId],
         start_date: startDate,
         end_date: endDate,
         count: 500,
         offset: 0,
-      };
+      } as any;
 
       const response = await plaidClient.transactionsGet(request);
-      return response.data.transactions;
+      return response.data.transactions as PlaidTransaction[];
     } catch (error) {
       console.error('Error fetching transactions:', error);
       throw new Error('Failed to fetch transactions');

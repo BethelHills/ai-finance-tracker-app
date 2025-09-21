@@ -1,4 +1,5 @@
 import { getCollection } from './mongodb';
+import { ObjectId } from 'mongodb';
 
 export interface AIPrompt {
   _id?: string;
@@ -66,7 +67,7 @@ export interface AuditLog {
 // MongoDB collection helpers
 export class MongoDBService {
   // AI Prompts
-  static async saveAIPrompt(prompt: AIPrompt): Promise<string> {
+  static async saveAIPrompt(prompt: Omit<AIPrompt, '_id'>): Promise<string> {
     const collection = await getCollection('ai_prompts');
     const result = await collection.insertOne({
       ...prompt,
@@ -77,11 +78,24 @@ export class MongoDBService {
 
   static async getAIPrompts(userId: string, limit = 50): Promise<AIPrompt[]> {
     const collection = await getCollection('ai_prompts');
-    return await collection
+    const results = await collection
       .find({ userId })
       .sort({ timestamp: -1 })
       .limit(limit)
-      .toArray() as AIPrompt[];
+      .toArray();
+    
+    return results.map(doc => ({
+      _id: doc._id.toString(),
+      userId: doc.userId,
+      prompt: doc.prompt,
+      response: doc.response,
+      model: doc.model,
+      tokens: doc.tokens,
+      cost: doc.cost,
+      timestamp: doc.timestamp,
+      category: doc.category,
+      metadata: doc.metadata,
+    }));
   }
 
   static async getAIPromptStats(userId: string, startDate: Date, endDate: Date) {
@@ -120,7 +134,7 @@ export class MongoDBService {
   static async updateNote(noteId: string, updates: Partial<UserNote>): Promise<boolean> {
     const collection = await getCollection('user_notes');
     const result = await collection.updateOne(
-      { _id: noteId },
+      { _id: new ObjectId(noteId) },
       { 
         $set: { 
           ...updates, 
@@ -137,15 +151,27 @@ export class MongoDBService {
     if (transactionId) {
       query.transactionId = transactionId;
     }
-    return await collection
+    const results = await collection
       .find(query)
       .sort({ updatedAt: -1 })
-      .toArray() as UserNote[];
+      .toArray();
+    
+    return results.map(doc => ({
+      _id: doc._id.toString(),
+      userId: doc.userId,
+      transactionId: doc.transactionId,
+      title: doc.title,
+      content: doc.content,
+      tags: doc.tags,
+      createdAt: doc.createdAt,
+      updatedAt: doc.updatedAt,
+      isPrivate: doc.isPrivate,
+    }));
   }
 
   static async deleteNote(noteId: string): Promise<boolean> {
     const collection = await getCollection('user_notes');
-    const result = await collection.deleteOne({ _id: noteId });
+    const result = await collection.deleteOne({ _id: new ObjectId(noteId) });
     return result.deletedCount > 0;
   }
 
@@ -161,10 +187,22 @@ export class MongoDBService {
 
   static async getUnprocessedWebhooks(): Promise<WebhookEvent[]> {
     const collection = await getCollection('webhook_events');
-    return await collection
+    const results = await collection
       .find({ processed: false, retryCount: { $lt: 3 } })
       .sort({ createdAt: 1 })
-      .toArray() as WebhookEvent[];
+      .toArray();
+    
+    return results.map(doc => ({
+      _id: doc._id.toString(),
+      provider: doc.provider,
+      eventType: doc.eventType,
+      payload: doc.payload,
+      processed: doc.processed,
+      processedAt: doc.processedAt,
+      error: doc.error,
+      retryCount: doc.retryCount,
+      createdAt: doc.createdAt,
+    }));
   }
 
   static async markWebhookProcessed(eventId: string, error?: string): Promise<boolean> {
@@ -180,7 +218,7 @@ export class MongoDBService {
     }
 
     const result = await collection.updateOne(
-      { _id: eventId },
+      { _id: new ObjectId(eventId) },
       update
     );
     return result.modifiedCount > 0;
@@ -199,7 +237,7 @@ export class MongoDBService {
   static async updateReconciliationJob(jobId: string, updates: Partial<ReconciliationJob>): Promise<boolean> {
     const collection = await getCollection('reconciliation_jobs');
     const result = await collection.updateOne(
-      { _id: jobId },
+      { _id: new ObjectId(jobId) },
       { $set: updates }
     );
     return result.modifiedCount > 0;
@@ -207,11 +245,25 @@ export class MongoDBService {
 
   static async getReconciliationJobs(userId: string, limit = 20): Promise<ReconciliationJob[]> {
     const collection = await getCollection('reconciliation_jobs');
-    return await collection
+    const results = await collection
       .find({ userId })
       .sort({ startedAt: -1 })
       .limit(limit)
-      .toArray() as ReconciliationJob[];
+      .toArray();
+    
+    return results.map(doc => ({
+      _id: doc._id.toString(),
+      userId: doc.userId,
+      provider: doc.provider,
+      status: doc.status,
+      startedAt: doc.startedAt,
+      completedAt: doc.completedAt,
+      error: doc.error,
+      recordsProcessed: doc.recordsProcessed,
+      recordsMatched: doc.recordsMatched,
+      recordsUnmatched: doc.recordsUnmatched,
+      metadata: doc.metadata,
+    }));
   }
 
   // Audit Logs
@@ -226,11 +278,23 @@ export class MongoDBService {
 
   static async getAuditLogs(userId: string, limit = 100): Promise<AuditLog[]> {
     const collection = await getCollection('audit_logs');
-    return await collection
+    const results = await collection
       .find({ userId })
       .sort({ timestamp: -1 })
       .limit(limit)
-      .toArray() as AuditLog[];
+      .toArray();
+    
+    return results.map(doc => ({
+      _id: doc._id.toString(),
+      userId: doc.userId,
+      action: doc.action,
+      resource: doc.resource,
+      resourceId: doc.resourceId,
+      details: doc.details,
+      ipAddress: doc.ipAddress,
+      userAgent: doc.userAgent,
+      timestamp: doc.timestamp,
+    }));
   }
 
   // Analytics and Reporting
