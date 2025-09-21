@@ -7,6 +7,8 @@ import { MobileHeader } from '@/components/mobile-navigation';
 import { ToastProvider } from '@/components/toast-provider';
 import { UserSettingsProvider } from '@/contexts/user-settings-context';
 import { AuthProvider } from '@/contexts/auth-context';
+import { SimulationProvider } from '@/lib/simulation/simulation-context';
+import { SimulationModeIndicator } from '@/lib/simulation/simulation-context';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -30,15 +32,18 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            <UserSettingsProvider>
-              <Providers>
-                <ToastProvider />
-                <MobileHeader />
-                {children}
-              </Providers>
-            </UserSettingsProvider>
-          </AuthProvider>
+          <SimulationProvider>
+            <AuthProvider>
+              <UserSettingsProvider>
+                <Providers>
+                  <ToastProvider />
+                  <MobileHeader />
+                  <SimulationModeIndicator />
+                  {children}
+                </Providers>
+              </UserSettingsProvider>
+            </AuthProvider>
+          </SimulationProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { UserMenu } from '@/components/user-menu';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { SimulationToggle } from '@/components/simulation/simulation-toggle';
 
 export function Header() {
   const [notifications] = useState(3); // Mock notification count
@@ -43,6 +44,8 @@ export function Header() {
               </Badge>
             )}
           </Button>
+
+          <SimulationToggle />
 
           <ThemeToggle />
 
