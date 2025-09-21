@@ -33,6 +33,7 @@ model User {
   goals        FinancialGoal[]
   categories   Category[]
   insights    Insight[]
+  ledgerEntries LedgerEntry[]
 
   @@map("users")
 }
@@ -55,6 +56,7 @@ model Account {
   // Relations
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  ledgerEntries LedgerEntry[]
 
   @@map("accounts")
 }
@@ -176,6 +178,31 @@ model Insight {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("insights")
+}
+
+model LedgerEntry {
+  id            String   @id @default(cuid())
+  userId        String
+  accountId     String
+  transactionId String
+  amount        Decimal
+  balance       Decimal
+  type          LedgerType
+  description   String
+  reference     String
+  timestamp     DateTime @default(now())
+  metadata      Json?
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("ledger_entries")
+}
+
+enum LedgerType {
+  DEBIT
+  CREDIT
 }
 
 // Enums

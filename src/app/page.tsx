@@ -1,4 +1,5 @@
 import { EnhancedDashboard } from '@/components/enhanced-dashboard';
+import { EnhancedFinancialDashboard } from '@/components/enhanced-financial-dashboard';
 import { Header } from '@/components/header';
 import { Sidebar } from '@/components/sidebar';
 import { TransactionsPage } from '@/components/transactions-page';
@@ -44,7 +45,7 @@ export default function Home() {
               </TabsList>
 
               <TabsContent value='dashboard' className='space-y-6'>
-                <EnhancedDashboard />
+                <EnhancedFinancialDashboard />
               </TabsContent>
 
               <TabsContent value='transactions' className='space-y-6'>
