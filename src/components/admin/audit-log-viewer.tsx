@@ -222,7 +222,6 @@ export function AuditLogViewer() {
 
         setAuditEvents(mockEvents);
         setStats(mockStats);
-        toast.info('Using demo data - API not available');
       }
     } catch (error) {
       console.error('Error loading audit logs:', error);
