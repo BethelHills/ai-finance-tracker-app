@@ -96,132 +96,13 @@ export function AuditLogViewer() {
         const data = await response.json();
         setAuditEvents(data.events);
         setStats(data.stats);
+        toast.success('Audit logs loaded successfully');
       } else {
-        // If API fails, use mock data
-        const mockEvents = [
-          {
-            id: 'audit_1',
-            timestamp: new Date('2024-01-20T10:30:00Z'),
-            userId: 'user_123',
-            action: 'login_success',
-            resource: 'authentication',
-            resourceId: 'session_456',
-            details: {
-              ipAddress: '192.168.1.100',
-              userAgent: 'Mozilla/5.0...',
-            },
-            ipAddress: '192.168.1.100',
-            userAgent:
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            sessionId: 'session_456',
-            severity: 'low' as const,
-            category: 'authentication' as const,
-            hash: 'a1b2c3d4e5f6...',
-            signature: 'sig_1234567890...',
-          },
-          {
-            id: 'audit_2',
-            timestamp: new Date('2024-01-20T10:35:00Z'),
-            userId: 'user_123',
-            action: 'transaction_created',
-            resource: 'transaction',
-            resourceId: 'tx_789',
-            details: { amount: 150.0, type: 'expense', category: 'groceries' },
-            ipAddress: '192.168.1.100',
-            userAgent:
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            sessionId: 'session_456',
-            severity: 'medium' as const,
-            category: 'data_modification' as const,
-            hash: 'b2c3d4e5f6a1...',
-            signature: 'sig_2345678901...',
-          },
-          {
-            id: 'audit_3',
-            timestamp: new Date('2024-01-20T10:40:00Z'),
-            userId: 'user_123',
-            action: 'bank_account_linked',
-            resource: 'account',
-            resourceId: 'acc_101',
-            details: { provider: 'plaid', institution: 'Chase Bank' },
-            ipAddress: '192.168.1.100',
-            userAgent:
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            sessionId: 'session_456',
-            severity: 'high' as const,
-            category: 'data_modification' as const,
-            hash: 'c3d4e5f6a1b2...',
-            signature: 'sig_3456789012...',
-          },
-          {
-            id: 'audit_4',
-            timestamp: new Date('2024-01-20T10:45:00Z'),
-            userId: 'user_456',
-            action: 'failed_login_attempt',
-            resource: 'authentication',
-            resourceId: 'session_789',
-            details: { ipAddress: '192.168.1.200', reason: 'invalid_password' },
-            ipAddress: '192.168.1.200',
-            userAgent:
-              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-            sessionId: 'session_789',
-            severity: 'medium' as const,
-            category: 'authentication' as const,
-            hash: 'd4e5f6a1b2c3...',
-            signature: 'sig_4567890123...',
-          },
-          {
-            id: 'audit_5',
-            timestamp: new Date('2024-01-20T10:50:00Z'),
-            userId: 'user_123',
-            action: 'payment_processed',
-            resource: 'payment',
-            resourceId: 'pay_202',
-            details: { amount: 75.5, currency: 'USD', provider: 'stripe' },
-            ipAddress: '192.168.1.100',
-            userAgent:
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            sessionId: 'session_456',
-            severity: 'high' as const,
-            category: 'payment' as const,
-            hash: 'e5f6a1b2c3d4...',
-            signature: 'sig_5678901234...',
-          },
-        ];
-
-        const mockStats = {
-          totalEvents: mockEvents.length,
-          eventsByCategory: {
-            authentication: mockEvents.filter(
-              e => e.category === 'authentication'
-            ).length,
-            authorization: 0, // No authorization events in mock data
-            data_access: 0, // No data_access events in mock data
-            data_modification: mockEvents.filter(
-              e => e.category === 'data_modification'
-            ).length,
-            payment: mockEvents.filter(e => e.category === 'payment').length,
-            compliance: 0, // No compliance events in mock data
-            system: 0, // No system events in mock data
-          },
-          eventsBySeverity: {
-            low: mockEvents.filter(e => e.severity === 'low').length,
-            medium: mockEvents.filter(e => e.severity === 'medium').length,
-            high: mockEvents.filter(e => e.severity === 'high').length,
-            critical: 0, // No critical events in mock data
-          },
-          eventsByUser: {
-            user_123: mockEvents.filter(e => e.userId === 'user_123').length,
-            user_456: mockEvents.filter(e => e.userId === 'user_456').length,
-          },
-          recentActivity: mockEvents.filter(
-            e =>
-              new Date(e.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)
-          ).length,
-        };
-
-        setAuditEvents(mockEvents);
-        setStats(mockStats);
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
+        toast.error(
+          'Failed to load audit logs: ' + (errorData.error || 'Unknown error')
+        );
       }
     } catch (error) {
       console.error('Error loading audit logs:', error);
