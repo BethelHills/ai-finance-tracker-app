@@ -96,7 +96,6 @@ export function AuditLogViewer() {
         const data = await response.json();
         setAuditEvents(data.events);
         setStats(data.stats);
-        toast.success('Audit logs loaded successfully');
       } else {
         const errorData = await response.json();
         console.error('API Error:', errorData);
