@@ -14,6 +14,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { AccountLinking } from '@/components/account-linking';
 import { TransactionReconciliation } from '@/components/transactions/transaction-reconciliation';
 import { AuditLogViewer } from '@/components/admin/audit-log-viewer';
+import { AdminDashboard } from '@/components/admin/admin-dashboard';
 import { OnboardingFlow } from '@/components/onboarding/onboarding-flow';
 import { AIInsightsDashboard } from '@/components/ai/ai-insights-dashboard';
 import { PlaidLinkFlow } from '@/components/plaid/plaid-link-flow';
@@ -114,7 +115,7 @@ function MainApp() {
               </TabsContent>
 
               <TabsContent value='admin' className='space-y-6'>
-                <AuditLogViewer />
+                <AdminDashboard />
               </TabsContent>
             </Tabs>
           </div>
