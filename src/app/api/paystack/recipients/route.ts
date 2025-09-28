@@ -19,7 +19,10 @@ export async function GET(request: NextRequest) {
     const perPage = parseInt(searchParams.get('perPage') || '50');
 
     // Get recipients from Paystack
-    const paystackRecipients = await PaystackIntegration.listTransferRecipients(page, perPage);
+    const paystackRecipients = await PaystackIntegration.listTransferRecipients(
+      page,
+      perPage
+    );
 
     // Also get local recipients from database
     const localRecipients = await prisma.transferRecipient.findMany({
@@ -42,9 +45,9 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching recipients:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to fetch recipients',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -67,7 +70,10 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!name || !email || !accountNumber || !bankCode) {
       return NextResponse.json(
-        { error: 'Missing required fields: name, email, accountNumber, bankCode' },
+        {
+          error:
+            'Missing required fields: name, email, accountNumber, bankCode',
+        },
         { status: 400 }
       );
     }
@@ -106,9 +112,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating recipient:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to create recipient',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

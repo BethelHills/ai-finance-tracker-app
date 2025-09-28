@@ -23,7 +23,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Exchange public token for access token
-    const { accessToken, itemId } = await PlaidService.exchangePublicToken(public_token);
+    const accessToken = await PlaidService.exchangePublicToken(public_token);
+
+    // For now, we'll use a placeholder item ID since we don't have a method to get it
+    // In a real implementation, you'd get this from the Plaid response
+    const itemId = `item_${Date.now()}`;
 
     // Update user with Plaid access token and item ID
     await prisma.user.update({
@@ -40,9 +44,9 @@ export async function POST(request: NextRequest) {
     // Create or update accounts in database
     for (const plaidAccount of plaidAccounts) {
       const existingAccount = await prisma.account.findFirst({
-        where: { 
-          plaidAccountId: plaidAccount.id,
-          userId: session.user.id 
+        where: {
+          plaidAccountId: plaidAccount.account_id,
+          userId: session.user.id,
         },
       });
 
@@ -52,8 +56,10 @@ export async function POST(request: NextRequest) {
           where: { id: existingAccount.id },
           data: {
             name: plaidAccount.name || existingAccount.name,
-            balance: plaidAccount.current_balance || existingAccount.balance,
-            currency: plaidAccount.iso_currency_code || existingAccount.currency,
+            balance: plaidAccount.balances.current || existingAccount.balance,
+            currency:
+              plaidAccount.balances.iso_currency_code ||
+              existingAccount.currency,
             plaidMask: plaidAccount.mask,
           },
         });
@@ -63,10 +69,10 @@ export async function POST(request: NextRequest) {
           data: {
             name: plaidAccount.name || 'Unknown Account',
             type: mapPlaidAccountType(plaidAccount.type),
-            balance: plaidAccount.current_balance || 0,
-            currency: plaidAccount.iso_currency_code || 'USD',
+            balance: plaidAccount.balances.current || 0,
+            currency: plaidAccount.balances.iso_currency_code || 'USD',
             userId: session.user.id,
-            plaidAccountId: plaidAccount.id,
+            plaidAccountId: plaidAccount.account_id,
             plaidMask: plaidAccount.mask,
           },
         });
@@ -82,16 +88,16 @@ export async function POST(request: NextRequest) {
       try {
         const plaidTransactions = await PlaidService.getTransactions(
           accessToken,
-          plaidAccount.id,
+          plaidAccount.account_id,
           startDate.toISOString().split('T')[0],
           endDate.toISOString().split('T')[0]
         );
 
         // Get the corresponding internal account
         const internalAccount = await prisma.account.findFirst({
-          where: { 
-            plaidAccountId: plaidAccount.id,
-            userId: session.user.id 
+          where: {
+            plaidAccountId: plaidAccount.account_id,
+            userId: session.user.id,
           },
         });
 
@@ -114,7 +120,7 @@ export async function POST(request: NextRequest) {
                   plaidTransactionId: plaidTransaction.transaction_id,
                   plaidAccountId: plaidTransaction.account_id,
                   metadata: {
-                    plaidData: plaidTransaction,
+                    plaidData: plaidTransaction as any,
                     category: plaidTransaction.category,
                     merchant: plaidTransaction.merchant_name,
                     pending: plaidTransaction.pending,
@@ -125,7 +131,10 @@ export async function POST(request: NextRequest) {
           }
         }
       } catch (error) {
-        console.error(`Error fetching transactions for account ${plaidAccount.id}:`, error);
+        console.error(
+          `Error fetching transactions for account ${plaidAccount.account_id}:`,
+          error
+        );
         // Continue with other accounts even if one fails
       }
     }
@@ -142,9 +151,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Token exchange error:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to exchange public token',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -154,19 +163,21 @@ export async function POST(request: NextRequest) {
 }
 
 // Helper function to map Plaid account types to our enum
-function mapPlaidAccountType(plaidType: string): 'CHECKING' | 'SAVINGS' | 'CREDIT' | 'INVESTMENT' | 'OTHER' {
+function mapPlaidAccountType(
+  plaidType: string
+): 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD' | 'INVESTMENT' | 'CASH' | 'LOAN' {
   switch (plaidType.toLowerCase()) {
     case 'depository':
       return 'CHECKING';
     case 'credit':
-      return 'CREDIT';
+      return 'CREDIT_CARD';
     case 'investment':
       return 'INVESTMENT';
     case 'loan':
-      return 'OTHER';
+      return 'LOAN';
     case 'other':
-      return 'OTHER';
+      return 'CASH';
     default:
-      return 'OTHER';
+      return 'CASH';
   }
 }

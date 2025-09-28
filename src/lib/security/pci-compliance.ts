@@ -38,7 +38,7 @@ export class PCIComplianceService {
   ): Promise<PaymentToken> {
     // Generate secure token
     const token = crypto.randomBytes(32).toString('hex');
-    
+
     // Store only tokenized data, never raw card details
     const tokenizedData: PaymentToken = {
       token,
@@ -80,13 +80,28 @@ export class PCIComplianceService {
     let result;
     switch (tokenData.provider) {
       case 'stripe':
-        result = await this.processStripePayment(token, amount, currency, description);
+        result = await this.processStripePayment(
+          token,
+          amount,
+          currency,
+          description
+        );
         break;
       case 'paystack':
-        result = await this.processPaystackPayment(token, amount, currency, description);
+        result = await this.processPaystackPayment(
+          token,
+          amount,
+          currency,
+          description
+        );
         break;
       case 'flutterwave':
-        result = await this.processFlutterwavePayment(token, amount, currency, description);
+        result = await this.processFlutterwavePayment(
+          token,
+          amount,
+          currency,
+          description
+        );
         break;
       default:
         throw new Error('Unsupported payment provider');
@@ -111,12 +126,21 @@ export class PCIComplianceService {
    */
   static sanitizeLogData(data: any): any {
     const sensitiveFields = [
-      'cardNumber', 'cvv', 'cvc', 'expiry', 'expiryMonth', 'expiryYear',
-      'password', 'pin', 'ssn', 'socialSecurityNumber', 'accountNumber'
+      'cardNumber',
+      'cvv',
+      'cvc',
+      'expiry',
+      'expiryMonth',
+      'expiryYear',
+      'password',
+      'pin',
+      'ssn',
+      'socialSecurityNumber',
+      'accountNumber',
     ];
 
     const sanitized = { ...data };
-    
+
     for (const field of sensitiveFields) {
       if (sanitized[field]) {
         sanitized[field] = '***REDACTED***';
@@ -129,7 +153,9 @@ export class PCIComplianceService {
   /**
    * Validate payment token
    */
-  private static async validatePaymentToken(token: string): Promise<PaymentToken | null> {
+  private static async validatePaymentToken(
+    token: string
+  ): Promise<PaymentToken | null> {
     // In a real implementation, this would check against a secure token store
     // For now, we'll simulate validation
     try {
@@ -212,7 +238,9 @@ export class PCIComplianceService {
     action: string
   ): Promise<void> {
     // Log to secure audit system
-    console.log(`[AUDIT] Payment token ${action}: ${token.substring(0, 8)}... (${provider})`);
+    console.log(
+      `[AUDIT] Payment token ${action}: ${token.substring(0, 8)}... (${provider})`
+    );
   }
 
   /**
@@ -225,7 +253,9 @@ export class PCIComplianceService {
     result: any
   ): Promise<void> {
     // Log to secure audit system
-    console.log(`[AUDIT] Payment processed: ${token.substring(0, 8)}... ${amount} ${currency} - ${result.status}`);
+    console.log(
+      `[AUDIT] Payment processed: ${token.substring(0, 8)}... ${amount} ${currency} - ${result.status}`
+    );
   }
 
   /**
@@ -236,7 +266,7 @@ export class PCIComplianceService {
     violations: string[];
   }> {
     const violations: string[] = [];
-    
+
     // Check for raw card data patterns in database
     const sensitivePatterns = [
       /\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}/, // Card number pattern

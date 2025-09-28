@@ -22,10 +22,7 @@ export async function POST(request: NextRequest) {
       .digest('hex');
 
     if (hash !== signature) {
-      return NextResponse.json(
-        { error: 'Invalid signature' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
     // Save webhook event to MongoDB

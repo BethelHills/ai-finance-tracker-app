@@ -38,12 +38,16 @@ export class ReceiptGeneratorService {
   /**
    * Generate human-readable reference
    */
-  static generateReference(type: string, amount: number, timestamp: Date): string {
+  static generateReference(
+    type: string,
+    amount: number,
+    timestamp: Date
+  ): string {
     const dateStr = timestamp.toISOString().split('T')[0].replace(/-/g, '');
     const timeStr = timestamp.toTimeString().split(' ')[0].replace(/:/g, '');
     const amountStr = Math.abs(amount).toString().padStart(6, '0');
     const randomStr = crypto.randomBytes(2).toString('hex').toUpperCase();
-    
+
     return `${this.REFERENCE_PREFIX}-${type.toUpperCase()}-${dateStr}-${timeStr}-${amountStr}-${randomStr}`;
   }
 
@@ -77,7 +81,7 @@ export class ReceiptGeneratorService {
     const amountStr = Math.abs(amount).toString().padStart(8, '0');
     const accountStr = accountNumber.slice(-4);
     const randomStr = crypto.randomBytes(2).toString('hex').toUpperCase();
-    
+
     return `${bankCode}-${dateStr}-${amountStr}-${accountStr}-${randomStr}`;
   }
 
@@ -166,7 +170,7 @@ export class ReceiptGeneratorService {
    */
   static generateEmailReceipt(data: ReceiptData): string {
     const receiptType = data.type.charAt(0).toUpperCase() + data.type.slice(1);
-    
+
     return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
         <div style="background: #f8f9fa; padding: 20px; text-align: center; border-bottom: 1px solid #ddd;">
@@ -206,37 +210,57 @@ export class ReceiptGeneratorService {
             <div style="color: #666;">
               <strong>Description:</strong> ${data.description}
             </div>
-            ${data.fromAccount ? `
+            ${
+              data.fromAccount
+                ? `
               <div style="color: #666; margin-top: 5px;">
                 <strong>From:</strong> ${data.fromAccount}
               </div>
-            ` : ''}
-            ${data.toAccount ? `
+            `
+                : ''
+            }
+            ${
+              data.toAccount
+                ? `
               <div style="color: #666; margin-top: 5px;">
                 <strong>To:</strong> ${data.toAccount}
               </div>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
 
-          ${data.bankReference ? `
+          ${
+            data.bankReference
+              ? `
             <div style="border-top: 1px solid #ddd; padding-top: 15px; margin-top: 20px;">
               <div style="color: #666;">
                 <strong>Bank Reference:</strong> ${data.bankReference}
               </div>
             </div>
-          ` : ''}
+          `
+              : ''
+          }
 
-          ${data.fees ? `
+          ${
+            data.fees
+              ? `
             <div style="color: #666; margin-top: 10px;">
               <strong>Fees:</strong> ${data.currency} ${data.fees.toLocaleString()}
             </div>
-          ` : ''}
+          `
+              : ''
+          }
 
-          ${data.notes ? `
+          ${
+            data.notes
+              ? `
             <div style="background: #f0f9ff; padding: 10px; border-radius: 4px; margin-top: 15px;">
               <strong>Notes:</strong> ${data.notes}
             </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
 
         <div style="background: #f8f9fa; padding: 15px; text-align: center; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
@@ -300,30 +324,46 @@ export class ReceiptGeneratorService {
               <span>Description:</span>
               <span>${data.description}</span>
             </div>
-            ${data.fromAccount ? `
+            ${
+              data.fromAccount
+                ? `
               <div class="row">
                 <span>From:</span>
                 <span>${data.fromAccount}</span>
               </div>
-            ` : ''}
-            ${data.toAccount ? `
+            `
+                : ''
+            }
+            ${
+              data.toAccount
+                ? `
               <div class="row">
                 <span>To:</span>
                 <span>${data.toAccount}</span>
               </div>
-            ` : ''}
-            ${data.bankReference ? `
+            `
+                : ''
+            }
+            ${
+              data.bankReference
+                ? `
               <div class="row">
                 <span>Bank Ref:</span>
                 <span>${data.bankReference}</span>
               </div>
-            ` : ''}
-            ${data.fees ? `
+            `
+                : ''
+            }
+            ${
+              data.fees
+                ? `
               <div class="row">
                 <span>Fees:</span>
                 <span>${data.currency} ${data.fees.toLocaleString()}</span>
               </div>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
           <div class="footer">
             <p>Keep this receipt for your records</p>
@@ -343,32 +383,78 @@ export class ReceiptGeneratorService {
         id: 'transfer',
         name: 'Transfer Receipt',
         template: 'transfer_template',
-        variables: ['id', 'reference', 'amount', 'currency', 'fromAccount', 'toAccount', 'description', 'timestamp', 'status']
+        variables: [
+          'id',
+          'reference',
+          'amount',
+          'currency',
+          'fromAccount',
+          'toAccount',
+          'description',
+          'timestamp',
+          'status',
+        ],
       },
       payment: {
         id: 'payment',
         name: 'Payment Receipt',
         template: 'payment_template',
-        variables: ['id', 'reference', 'amount', 'currency', 'toAccount', 'description', 'timestamp', 'status']
+        variables: [
+          'id',
+          'reference',
+          'amount',
+          'currency',
+          'toAccount',
+          'description',
+          'timestamp',
+          'status',
+        ],
       },
       deposit: {
         id: 'deposit',
         name: 'Deposit Receipt',
         template: 'deposit_template',
-        variables: ['id', 'reference', 'amount', 'currency', 'toAccount', 'description', 'timestamp', 'status']
+        variables: [
+          'id',
+          'reference',
+          'amount',
+          'currency',
+          'toAccount',
+          'description',
+          'timestamp',
+          'status',
+        ],
       },
       withdrawal: {
         id: 'withdrawal',
         name: 'Withdrawal Receipt',
         template: 'withdrawal_template',
-        variables: ['id', 'reference', 'amount', 'currency', 'fromAccount', 'description', 'timestamp', 'status']
+        variables: [
+          'id',
+          'reference',
+          'amount',
+          'currency',
+          'fromAccount',
+          'description',
+          'timestamp',
+          'status',
+        ],
       },
       refund: {
         id: 'refund',
         name: 'Refund Receipt',
         template: 'refund_template',
-        variables: ['id', 'reference', 'amount', 'currency', 'toAccount', 'description', 'timestamp', 'status']
-      }
+        variables: [
+          'id',
+          'reference',
+          'amount',
+          'currency',
+          'toAccount',
+          'description',
+          'timestamp',
+          'status',
+        ],
+      },
     };
 
     return templates[type] || templates.transfer;
@@ -377,7 +463,10 @@ export class ReceiptGeneratorService {
   /**
    * Fill receipt template with data
    */
-  private static fillReceiptTemplate(template: ReceiptTemplate, data: ReceiptData): string {
+  private static fillReceiptTemplate(
+    template: ReceiptTemplate,
+    data: ReceiptData
+  ): string {
     // In a real implementation, this would use a templating engine
     // For now, return a simple formatted string
     return `
@@ -413,7 +502,7 @@ ${data.fees ? `Fees: ${data.currency} ${data.fees.toLocaleString()}` : ''}
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -421,8 +510,13 @@ ${data.fees ? `Fees: ${data.currency} ${data.fees.toLocaleString()}` : ''}
    * Generate receipt summary for reconciliation
    */
   static generateReconciliationSummary(receipts: ReceiptData[]): string {
-    const totalAmount = receipts.reduce((sum, receipt) => sum + Math.abs(receipt.amount), 0);
-    const completedCount = receipts.filter(r => r.status === 'completed').length;
+    const totalAmount = receipts.reduce(
+      (sum, receipt) => sum + Math.abs(receipt.amount),
+      0
+    );
+    const completedCount = receipts.filter(
+      r => r.status === 'completed'
+    ).length;
     const pendingCount = receipts.filter(r => r.status === 'pending').length;
     const failedCount = receipts.filter(r => r.status === 'failed').length;
 

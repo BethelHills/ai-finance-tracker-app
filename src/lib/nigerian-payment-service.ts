@@ -2,10 +2,28 @@ import Paystack from '@paystack/paystack-sdk';
 import Flutterwave from 'flutterwave-node-v3';
 
 // Initialize Paystack
-const paystack = new Paystack(process.env.PAYSTACK_SECRET_KEY!);
+const getPaystack = () => {
+  if (!process.env.PAYSTACK_SECRET_KEY) {
+    throw new Error('PAYSTACK_SECRET_KEY environment variable is not set');
+  }
+  return new Paystack(process.env.PAYSTACK_SECRET_KEY);
+};
 
 // Initialize Flutterwave
-const flw = new Flutterwave(process.env.FLUTTERWAVE_PUBLIC_KEY!, process.env.FLUTTERWAVE_SECRET_KEY!);
+const getFlutterwave = () => {
+  if (
+    !process.env.FLUTTERWAVE_PUBLIC_KEY ||
+    !process.env.FLUTTERWAVE_SECRET_KEY
+  ) {
+    throw new Error(
+      'FLUTTERWAVE_PUBLIC_KEY and FLUTTERWAVE_SECRET_KEY environment variables are not set'
+    );
+  }
+  return new Flutterwave(
+    process.env.FLUTTERWAVE_PUBLIC_KEY,
+    process.env.FLUTTERWAVE_SECRET_KEY
+  );
+};
 
 export interface NigerianBank {
   id: number;
@@ -52,6 +70,7 @@ export class NigerianPaymentService {
    */
   static async getBanks(): Promise<NigerianBank[]> {
     try {
+      const paystack = getPaystack();
       const response = await paystack.misc.listBanks();
       return response.data;
     } catch (error) {
@@ -69,6 +88,7 @@ export class NigerianPaymentService {
     name: string
   ): Promise<TransferRecipient> {
     try {
+      const paystack = getPaystack();
       const response = await paystack.transferRecipient.create({
         type: 'nuban',
         name,
@@ -100,6 +120,7 @@ export class NigerianPaymentService {
     reason: string
   ): Promise<TransferResponse> {
     try {
+      const paystack = getPaystack();
       const response = await paystack.transfer.initiate({
         source: 'balance',
         amount: amount * 100, // Convert to kobo
@@ -120,7 +141,8 @@ export class NigerianPaymentService {
           currency: (response.data as any).currency || 'NGN',
           reference: (response.data as any).reference || '',
           status: (response.data as any).status || 'pending',
-          created_at: (response.data as any).createdAt || new Date().toISOString(),
+          created_at:
+            (response.data as any).createdAt || new Date().toISOString(),
         },
       };
     } catch (error) {
@@ -134,6 +156,7 @@ export class NigerianPaymentService {
    */
   static async verifyTransfer(reference: string): Promise<TransferResponse> {
     try {
+      const paystack = getPaystack();
       const response = await paystack.transfer.verify(reference);
       return {
         status: (response as any).status || 'success',
@@ -147,7 +170,8 @@ export class NigerianPaymentService {
           currency: (response.data as any).currency || 'NGN',
           reference: (response.data as any).reference || '',
           status: (response.data as any).status || 'completed',
-          created_at: (response.data as any).createdAt || new Date().toISOString(),
+          created_at:
+            (response.data as any).createdAt || new Date().toISOString(),
         },
       };
     } catch (error) {
@@ -164,6 +188,7 @@ export class NigerianPaymentService {
     balance: number;
   }> {
     try {
+      const paystack = getPaystack();
       const response = await paystack.balance.check();
       return {
         currency: response.data.currency,
@@ -188,6 +213,7 @@ export class NigerianPaymentService {
     bank_code: string;
   }> {
     try {
+      const flw = getFlutterwave();
       const response = await flw.VirtualAcct.create({
         email,
         is_permanent: true,
@@ -217,6 +243,7 @@ export class NigerianPaymentService {
     balance: number;
   }> {
     try {
+      const flw = getFlutterwave();
       const response = await flw.Balance.get();
       return {
         currency: response.data.currency,
@@ -243,6 +270,7 @@ export class NigerianPaymentService {
     status: string;
   }> {
     try {
+      const flw = getFlutterwave();
       const response = await flw.Transfer.initiate({
         account_bank: accountBank,
         account_number: accountNumber,
@@ -277,6 +305,7 @@ export class NigerianPaymentService {
     currency: string;
   }> {
     try {
+      const flw = getFlutterwave();
       const response = await flw.Transfer.get({ reference });
       return {
         id: response.data.id,

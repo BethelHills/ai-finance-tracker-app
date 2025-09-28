@@ -8,12 +8,9 @@ const prisma = new PrismaClient();
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession();
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { refresh_url, return_url } = await request.json();
@@ -45,8 +42,8 @@ export async function POST(request: NextRequest) {
       return_url
     );
 
-    return NextResponse.json({ 
-      account_link_url: accountLinkUrl 
+    return NextResponse.json({
+      account_link_url: accountLinkUrl,
     });
   } catch (error) {
     console.error('Error creating account link:', error);

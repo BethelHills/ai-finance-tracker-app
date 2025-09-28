@@ -35,7 +35,7 @@ export class TwoFactorAuthService {
    * Generate TOTP secret for user
    */
   static generateTOTPSecret(userId: string, userEmail: string): TOTPSecret {
-    const secret = crypto.randomBytes(20).toString('base32');
+    const secret = crypto.randomBytes(20).toString('base64');
     const qrCodeUrl = this.generateQRCodeUrl(userId, userEmail, secret);
     const backupCodes = this.generateBackupCodes();
 
@@ -95,7 +95,7 @@ export class TwoFactorAuthService {
    * Generate TOTP code for specific time
    */
   private static generateTOTPCode(secret: string, time: number): string {
-    const key = Buffer.from(secret, 'base32');
+    const key = Buffer.from(secret, 'base64');
     const timeBuffer = Buffer.alloc(8);
     timeBuffer.writeUInt32BE(0, 0);
     timeBuffer.writeUInt32BE(time, 4);
@@ -105,12 +105,15 @@ export class TwoFactorAuthService {
     const digest = hmac.digest();
 
     const offset = digest[digest.length - 1] & 0xf;
-    const code = ((digest[offset] & 0x7f) << 24) |
-                 ((digest[offset + 1] & 0xff) << 16) |
-                 ((digest[offset + 2] & 0xff) << 8) |
-                 (digest[offset + 3] & 0xff);
+    const code =
+      ((digest[offset] & 0x7f) << 24) |
+      ((digest[offset + 1] & 0xff) << 16) |
+      ((digest[offset + 2] & 0xff) << 8) |
+      (digest[offset + 3] & 0xff);
 
-    return (code % Math.pow(10, this.TOTP_DIGITS)).toString().padStart(this.TOTP_DIGITS, '0');
+    return (code % Math.pow(10, this.TOTP_DIGITS))
+      .toString()
+      .padStart(this.TOTP_DIGITS, '0');
   }
 
   /**
@@ -123,7 +126,10 @@ export class TwoFactorAuthService {
   /**
    * Send email verification code
    */
-  static async sendEmailCode(userEmail: string, code: string): Promise<boolean> {
+  static async sendEmailCode(
+    userEmail: string,
+    code: string
+  ): Promise<boolean> {
     try {
       await sendEmail({
         to: userEmail,
@@ -182,10 +188,10 @@ export class TwoFactorAuthService {
 
     // Remove used backup code
     storedCodes.splice(index, 1);
-    
+
     // Update user's backup codes in database
     await this.updateUserBackupCodes(userId, storedCodes);
-    
+
     return true;
   }
 
@@ -348,7 +354,9 @@ export class TwoFactorAuthService {
     enabled: boolean
   ): Promise<void> {
     // In a real implementation, update database
-    console.log(`[2FA] Updated ${method} status for user ${userId}: ${enabled}`);
+    console.log(
+      `[2FA] Updated ${method} status for user ${userId}: ${enabled}`
+    );
   }
 
   private static async updateUserBackupCodes(

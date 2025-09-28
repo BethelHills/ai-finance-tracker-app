@@ -26,14 +26,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify transfer with Paystack
-    const paystackTransfer = await PaystackIntegration.verifyTransfer(reference);
+    const paystackTransfer =
+      await PaystackIntegration.verifyTransfer(reference);
 
     // Find the transaction in our ledger
     const ledgerTransaction = await prisma.transaction.findFirst({
-      where: { 
-        external_id: reference,
+      where: {
+        description: {
+          contains: reference,
+        },
         userId: session.user.id,
-        provider: 'paystack'
       },
     });
 
@@ -45,8 +47,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Update transaction status based on Paystack response
-    let newStatus: 'pending' | 'completed' | 'failed' | 'reversed' | 'cancelled' = 'pending';
-    
+    let newStatus:
+      | 'pending'
+      | 'completed'
+      | 'failed'
+      | 'reversed'
+      | 'cancelled' = 'pending';
+
     switch (paystackTransfer.status) {
       case 'success':
       case 'completed':
@@ -75,13 +82,13 @@ export async function POST(request: NextRequest) {
     );
 
     // If transfer failed, reverse the account balance
-    if (newStatus === 'failed' && ledgerTransaction.status === 'completed') {
+    if (newStatus === 'failed') {
       // Reverse the balance change
       await prisma.account.update({
         where: { id: ledgerTransaction.accountId },
         data: {
           balance: {
-            increment: Math.abs(ledgerTransaction.amount), // Add back the amount
+            increment: Math.abs(Number(ledgerTransaction.amount)), // Add back the amount
           },
         },
       });
@@ -100,9 +107,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error verifying transfer:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to verify transfer',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

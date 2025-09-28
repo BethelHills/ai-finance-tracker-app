@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const transactions = [
       {
         id: 'tx_1',
-        amount: -150.00,
+        amount: -150.0,
         description: 'Grocery Store Purchase',
         date: new Date('2024-01-15'),
         status: 'settled',
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       },
       {
         id: 'tx_2',
-        amount: 2500.00,
+        amount: 2500.0,
         description: 'Salary Deposit',
         date: new Date('2024-01-16'),
         status: 'settled',
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       },
       {
         id: 'tx_3',
-        amount: -75.50,
+        amount: -75.5,
         description: 'Gas Station',
         date: new Date('2024-01-17'),
         status: 'pending',
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
       },
       {
         id: 'tx_4',
-        amount: -1200.00,
+        amount: -1200.0,
         description: 'Rent Payment',
         date: new Date('2024-01-18'),
         status: 'settled',
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
       },
       {
         id: 'tx_5',
-        amount: -45.00,
+        amount: -45.0,
         description: 'Restaurant',
         date: new Date('2024-01-19'),
         status: 'failed',
@@ -95,11 +95,20 @@ export async function GET(request: NextRequest) {
 
     const stats = {
       totalTransactions: transactions.length,
-      reconciled: transactions.filter(tx => tx.reconciliationStatus === 'reconciled').length,
-      unreconciled: transactions.filter(tx => tx.reconciliationStatus === 'unreconciled').length,
-      disputed: transactions.filter(tx => tx.reconciliationStatus === 'disputed').length,
+      reconciled: transactions.filter(
+        tx => tx.reconciliationStatus === 'reconciled'
+      ).length,
+      unreconciled: transactions.filter(
+        tx => tx.reconciliationStatus === 'unreconciled'
+      ).length,
+      disputed: transactions.filter(
+        tx => tx.reconciliationStatus === 'disputed'
+      ).length,
       pending: transactions.filter(tx => tx.status === 'pending').length,
-      totalAmount: transactions.reduce((sum, tx) => sum + Math.abs(tx.amount), 0),
+      totalAmount: transactions.reduce(
+        (sum, tx) => sum + Math.abs(tx.amount),
+        0
+      ),
       reconciledAmount: transactions
         .filter(tx => tx.reconciliationStatus === 'reconciled')
         .reduce((sum, tx) => sum + Math.abs(tx.amount), 0),

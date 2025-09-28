@@ -10,7 +10,11 @@ export interface AIPrompt {
   tokens: number;
   cost: number;
   timestamp: Date;
-  category: 'transaction_categorization' | 'insights' | 'recommendations' | 'other';
+  category:
+    | 'transaction_categorization'
+    | 'insights'
+    | 'recommendations'
+    | 'other';
   metadata?: Record<string, any>;
 }
 
@@ -83,7 +87,7 @@ export class MongoDBService {
       .sort({ timestamp: -1 })
       .limit(limit)
       .toArray();
-    
+
     return results.map(doc => ({
       _id: doc._id.toString(),
       userId: doc.userId,
@@ -98,29 +102,35 @@ export class MongoDBService {
     }));
   }
 
-  static async getAIPromptStats(userId: string, startDate: Date, endDate: Date) {
+  static async getAIPromptStats(
+    userId: string,
+    startDate: Date,
+    endDate: Date
+  ) {
     const collection = await getCollection('ai_prompts');
     const pipeline = [
       {
         $match: {
           userId,
-          timestamp: { $gte: startDate, $lte: endDate }
-        }
+          timestamp: { $gte: startDate, $lte: endDate },
+        },
       },
       {
         $group: {
           _id: '$category',
           count: { $sum: 1 },
           totalTokens: { $sum: '$tokens' },
-          totalCost: { $sum: '$cost' }
-        }
-      }
+          totalCost: { $sum: '$cost' },
+        },
+      },
     ];
     return await collection.aggregate(pipeline).toArray();
   }
 
   // User Notes
-  static async createNote(note: Omit<UserNote, '_id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  static async createNote(
+    note: Omit<UserNote, '_id' | 'createdAt' | 'updatedAt'>
+  ): Promise<string> {
     const collection = await getCollection('user_notes');
     const now = new Date();
     const result = await collection.insertOne({
@@ -131,21 +141,27 @@ export class MongoDBService {
     return result.insertedId.toString();
   }
 
-  static async updateNote(noteId: string, updates: Partial<UserNote>): Promise<boolean> {
+  static async updateNote(
+    noteId: string,
+    updates: Partial<UserNote>
+  ): Promise<boolean> {
     const collection = await getCollection('user_notes');
     const result = await collection.updateOne(
       { _id: new ObjectId(noteId) },
-      { 
-        $set: { 
-          ...updates, 
-          updatedAt: new Date() 
-        } 
+      {
+        $set: {
+          ...updates,
+          updatedAt: new Date(),
+        },
       }
     );
     return result.modifiedCount > 0;
   }
 
-  static async getNotes(userId: string, transactionId?: string): Promise<UserNote[]> {
+  static async getNotes(
+    userId: string,
+    transactionId?: string
+  ): Promise<UserNote[]> {
     const collection = await getCollection('user_notes');
     const query: any = { userId };
     if (transactionId) {
@@ -155,7 +171,7 @@ export class MongoDBService {
       .find(query)
       .sort({ updatedAt: -1 })
       .toArray();
-    
+
     return results.map(doc => ({
       _id: doc._id.toString(),
       userId: doc.userId,
@@ -176,7 +192,9 @@ export class MongoDBService {
   }
 
   // Webhook Events
-  static async saveWebhookEvent(event: Omit<WebhookEvent, '_id' | 'createdAt'>): Promise<string> {
+  static async saveWebhookEvent(
+    event: Omit<WebhookEvent, '_id' | 'createdAt'>
+  ): Promise<string> {
     const collection = await getCollection('webhook_events');
     const result = await collection.insertOne({
       ...event,
@@ -191,7 +209,7 @@ export class MongoDBService {
       .find({ processed: false, retryCount: { $lt: 3 } })
       .sort({ createdAt: 1 })
       .toArray();
-    
+
     return results.map(doc => ({
       _id: doc._id.toString(),
       provider: doc.provider,
@@ -205,13 +223,16 @@ export class MongoDBService {
     }));
   }
 
-  static async markWebhookProcessed(eventId: string, error?: string): Promise<boolean> {
+  static async markWebhookProcessed(
+    eventId: string,
+    error?: string
+  ): Promise<boolean> {
     const collection = await getCollection('webhook_events');
     const update: any = {
       processed: true,
       processedAt: new Date(),
     };
-    
+
     if (error) {
       update.error = error;
       update.$inc = { retryCount: 1 };
@@ -225,7 +246,9 @@ export class MongoDBService {
   }
 
   // Reconciliation Jobs
-  static async createReconciliationJob(job: Omit<ReconciliationJob, '_id' | 'startedAt'>): Promise<string> {
+  static async createReconciliationJob(
+    job: Omit<ReconciliationJob, '_id' | 'startedAt'>
+  ): Promise<string> {
     const collection = await getCollection('reconciliation_jobs');
     const result = await collection.insertOne({
       ...job,
@@ -234,7 +257,10 @@ export class MongoDBService {
     return result.insertedId.toString();
   }
 
-  static async updateReconciliationJob(jobId: string, updates: Partial<ReconciliationJob>): Promise<boolean> {
+  static async updateReconciliationJob(
+    jobId: string,
+    updates: Partial<ReconciliationJob>
+  ): Promise<boolean> {
     const collection = await getCollection('reconciliation_jobs');
     const result = await collection.updateOne(
       { _id: new ObjectId(jobId) },
@@ -243,14 +269,17 @@ export class MongoDBService {
     return result.modifiedCount > 0;
   }
 
-  static async getReconciliationJobs(userId: string, limit = 20): Promise<ReconciliationJob[]> {
+  static async getReconciliationJobs(
+    userId: string,
+    limit = 20
+  ): Promise<ReconciliationJob[]> {
     const collection = await getCollection('reconciliation_jobs');
     const results = await collection
       .find({ userId })
       .sort({ startedAt: -1 })
       .limit(limit)
       .toArray();
-    
+
     return results.map(doc => ({
       _id: doc._id.toString(),
       userId: doc.userId,
@@ -267,7 +296,9 @@ export class MongoDBService {
   }
 
   // Audit Logs
-  static async logAuditEvent(event: Omit<AuditLog, '_id' | 'timestamp'>): Promise<string> {
+  static async logAuditEvent(
+    event: Omit<AuditLog, '_id' | 'timestamp'>
+  ): Promise<string> {
     const collection = await getCollection('audit_logs');
     const result = await collection.insertOne({
       ...event,
@@ -283,7 +314,7 @@ export class MongoDBService {
       .sort({ timestamp: -1 })
       .limit(limit)
       .toArray();
-    
+
     return results.map(doc => ({
       _id: doc._id.toString(),
       userId: doc.userId,
@@ -298,15 +329,19 @@ export class MongoDBService {
   }
 
   // Analytics and Reporting
-  static async getTransactionInsights(userId: string, startDate: Date, endDate: Date) {
+  static async getTransactionInsights(
+    userId: string,
+    startDate: Date,
+    endDate: Date
+  ) {
     const collection = await getCollection('ai_prompts');
     const pipeline = [
       {
         $match: {
           userId,
           category: 'transaction_categorization',
-          timestamp: { $gte: startDate, $lte: endDate }
-        }
+          timestamp: { $gte: startDate, $lte: endDate },
+        },
       },
       {
         $group: {
@@ -314,9 +349,9 @@ export class MongoDBService {
           totalPrompts: { $sum: 1 },
           totalTokens: { $sum: '$tokens' },
           totalCost: { $sum: '$cost' },
-          avgConfidence: { $avg: '$metadata.confidence' }
-        }
-      }
+          avgConfidence: { $avg: '$metadata.confidence' },
+        },
+      },
     ];
     return await collection.aggregate(pipeline).toArray();
   }

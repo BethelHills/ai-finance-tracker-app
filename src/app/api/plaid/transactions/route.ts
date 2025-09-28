@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       {
         transaction_id: 'tx_2',
         account_id: 'acc_1',
-        amount: -1200.00,
+        amount: -1200.0,
         date: '2024-01-19',
         name: 'RENT PAYMENT',
         merchant_name: 'Apartment Complex',
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       {
         transaction_id: 'tx_4',
         account_id: 'acc_1',
-        amount: 2500.00,
+        amount: 2500.0,
         date: '2024-01-17',
         name: 'SALARY DEPOSIT',
         merchant_name: 'Employer Corp',
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
       {
         transaction_id: 'tx_5',
         account_id: 'acc_1',
-        amount: -75.50,
+        amount: -75.5,
         date: '2024-01-16',
         name: 'SHELL GAS STATION',
         merchant_name: 'Shell',
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
       {
         transaction_id: 'tx_6',
         account_id: 'acc_1',
-        amount: -25.00,
+        amount: -25.0,
         date: '2024-01-15',
         name: 'NETFLIX SUBSCRIPTION',
         merchant_name: 'Netflix',
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
       {
         transaction_id: 'tx_7',
         account_id: 'acc_1',
-        amount: -150.00,
+        amount: -150.0,
         date: '2024-01-14',
         name: 'GROCERY STORE',
         merchant_name: 'Whole Foods',
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
       {
         transaction_id: 'tx_8',
         account_id: 'acc_1',
-        amount: -200.00,
+        amount: -200.0,
         date: '2024-01-13',
         name: 'UTILITY BILL',
         merchant_name: 'Electric Company',
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
       {
         transaction_id: 'tx_9',
         account_id: 'acc_1',
-        amount: -65.00,
+        amount: -65.0,
         date: '2024-01-12',
         name: 'RESTAURANT DINNER',
         merchant_name: 'Local Restaurant',
@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
       {
         transaction_id: 'tx_10',
         account_id: 'acc_1',
-        amount: -30.00,
+        amount: -30.0,
         date: '2024-01-11',
         name: 'UBER RIDE',
         merchant_name: 'Uber',
@@ -145,36 +145,39 @@ export async function GET(request: NextRequest) {
     ];
 
     // Generate AI insights for transactions
-    const insights = await TransactionInsightsService.categorizeTransactionsBatch(
-      transactions.map(tx => ({
-        id: tx.transaction_id,
-        amount: tx.amount,
-        description: tx.name,
-        date: new Date(tx.date),
-        merchant: tx.merchant_name,
-      }))
-    );
+    const insights =
+      await TransactionInsightsService.categorizeTransactionsBatch(
+        transactions.map(tx => ({
+          id: tx.transaction_id,
+          amount: tx.amount,
+          description: tx.name,
+          date: new Date(tx.date),
+          merchant: tx.merchant_name,
+        }))
+      );
 
     // Generate spending analysis
-    const spendingAnalysis = await TransactionInsightsService.analyzeSpendingPatterns(
-      transactions.map(tx => ({
-        id: tx.transaction_id,
-        amount: tx.amount,
-        description: tx.name,
-        date: new Date(tx.date),
-        category: tx.category[0],
-      }))
-    );
+    const spendingAnalysis =
+      await TransactionInsightsService.analyzeSpendingPatterns(
+        transactions.map(tx => ({
+          id: tx.transaction_id,
+          amount: tx.amount,
+          description: tx.name,
+          date: new Date(tx.date),
+          category: tx.category[0],
+        }))
+      );
 
     // Generate recommendations
-    const recommendations = await TransactionInsightsService.generateRecommendations(
-      spendingAnalysis,
-      {
-        age: 30,
-        income: 5000,
-        goals: ['Save for vacation', 'Build emergency fund'],
-      }
-    );
+    const recommendations =
+      await TransactionInsightsService.generateRecommendations(
+        spendingAnalysis,
+        {
+          age: 30,
+          income: 5000,
+          goals: ['Save for vacation', 'Build emergency fund'],
+        }
+      );
 
     return NextResponse.json({
       transactions,
@@ -183,8 +186,14 @@ export async function GET(request: NextRequest) {
       recommendations,
       summary: {
         totalTransactions: transactions.length,
-        totalSpent: Math.abs(transactions.filter(tx => tx.amount < 0).reduce((sum, tx) => sum + tx.amount, 0)),
-        totalIncome: transactions.filter(tx => tx.amount > 0).reduce((sum, tx) => sum + tx.amount, 0),
+        totalSpent: Math.abs(
+          transactions
+            .filter(tx => tx.amount < 0)
+            .reduce((sum, tx) => sum + tx.amount, 0)
+        ),
+        totalIncome: transactions
+          .filter(tx => tx.amount > 0)
+          .reduce((sum, tx) => sum + tx.amount, 0),
         categories: [...new Set(transactions.flatMap(tx => tx.category))],
         lastSync: new Date().toISOString(),
       },

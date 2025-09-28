@@ -20,14 +20,16 @@ export async function GET(request: NextRequest) {
     const perPage = parseInt(searchParams.get('perPage') || '50');
 
     // Get transfers from Paystack
-    const paystackTransfers = await PaystackIntegration.listTransfers(page, perPage);
+    const paystackTransfers = await PaystackIntegration.listTransfers(
+      page,
+      perPage
+    );
 
     // Also get local transfers from database
     const localTransfers = await prisma.transaction.findMany({
-      where: { 
+      where: {
         userId: session.user.id,
-        provider: 'paystack',
-        type: 'transfer'
+        type: 'TRANSFER',
       },
       orderBy: { createdAt: 'desc' },
       take: perPage,
@@ -49,9 +51,9 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching transfers:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to fetch transfers',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -74,7 +76,10 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!recipientId || !amount || !reason || !accountId) {
       return NextResponse.json(
-        { error: 'Missing required fields: recipientId, amount, reason, accountId' },
+        {
+          error:
+            'Missing required fields: recipientId, amount, reason, accountId',
+        },
         { status: 400 }
       );
     }
@@ -89,10 +94,10 @@ export async function POST(request: NextRequest) {
 
     // Check if recipient exists
     const recipient = await prisma.transferRecipient.findFirst({
-      where: { 
+      where: {
         paystackRecipientId: recipientId.toString(),
         userId: session.user.id,
-        isActive: true
+        isActive: true,
       },
     });
 
@@ -109,10 +114,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!account) {
-      return NextResponse.json(
-        { error: 'Account not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
     if (account.balance < amount) {
@@ -123,7 +125,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate reference if not provided
-    const transferReference = reference || `TRF_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const transferReference =
+      reference ||
+      `TRF_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Create transfer in Paystack
     const paystackTransfer = await PaystackIntegration.initiateTransfer(
@@ -178,9 +182,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error initiating transfer:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to initiate transfer',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

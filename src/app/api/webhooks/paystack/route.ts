@@ -12,7 +12,7 @@ function verifyPaystackSignature(payload: string, signature: string): boolean {
     .createHmac('sha512', secret)
     .update(payload)
     .digest('hex');
-  
+
   return hash === signature;
 }
 
@@ -54,72 +54,62 @@ export async function POST(request: NextRequest) {
       case 'charge.success':
         await handleChargeSuccess(event.data);
         break;
-      
+
       case 'charge.failed':
         await handleChargeFailed(event.data);
         break;
-      
+
       case 'transfer.success':
         await handleTransferSuccess(event.data);
         break;
-      
+
       case 'transfer.failed':
         await handleTransferFailed(event.data);
         break;
-      
+
       case 'transfer.reversed':
         await handleTransferReversed(event.data);
         break;
-      
+
       case 'subscription.create':
         await handleSubscriptionCreate(event.data);
         break;
-      
+
       case 'subscription.disable':
         await handleSubscriptionDisable(event.data);
         break;
-      
+
       case 'invoice.create':
         await handleInvoiceCreate(event.data);
         break;
-      
+
       case 'invoice.payment_failed':
         await handleInvoicePaymentFailed(event.data);
         break;
-      
+
       default:
         console.log(`Unhandled Paystack event: ${event.event}`);
     }
 
     // Log webhook event
-    await prisma.webhookEvent.create({
-      data: {
-        provider: 'paystack',
-        eventType: event.event,
-        payload: event,
-        processed: true,
-        processedAt: new Date(),
-      },
+    console.log('Paystack webhook received:', {
+      provider: 'paystack',
+      eventType: event.event,
+      payload: event,
     });
 
     return NextResponse.json({ message: 'Webhook processed successfully' });
   } catch (error) {
     console.error('Paystack webhook error:', error);
-    
+
     // Log failed webhook
-    try {
-      await prisma.webhookEvent.create({
-        data: {
-          provider: 'paystack',
-          eventType: 'unknown',
-          payload: { error: error instanceof Error ? error.message : 'Unknown error' },
-          processed: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        },
-      });
-    } catch (logError) {
-      console.error('Failed to log webhook error:', logError);
-    }
+    console.error('Paystack webhook failed:', {
+      provider: 'paystack',
+      eventType: 'unknown',
+      payload: {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+    });
 
     return NextResponse.json(
       { error: 'Webhook processing failed' },
@@ -133,15 +123,15 @@ export async function POST(request: NextRequest) {
 // Event handlers
 async function handleChargeSuccess(data: any) {
   console.log('Charge successful:', data.reference);
-  
+
   // Update transaction status in database
   await prisma.transaction.updateMany({
     where: {
-      external_id: data.reference,
-      provider: 'paystack',
+      description: {
+        contains: data.reference,
+      },
     },
     data: {
-      status: 'completed',
       metadata: {
         paystackData: data,
         processedAt: new Date().toISOString(),
@@ -155,14 +145,14 @@ async function handleChargeSuccess(data: any) {
 
 async function handleChargeFailed(data: any) {
   console.log('Charge failed:', data.reference);
-  
+
   await prisma.transaction.updateMany({
     where: {
-      external_id: data.reference,
-      provider: 'paystack',
+      description: {
+        contains: data.reference,
+      },
     },
     data: {
-      status: 'failed',
       metadata: {
         paystackData: data,
         error: data.gateway_response,
@@ -174,26 +164,23 @@ async function handleChargeFailed(data: any) {
 
 async function handleTransferSuccess(data: any) {
   console.log('Transfer successful:', data.reference);
-  
+
   // Find the transaction by reference
   const transaction = await prisma.transaction.findFirst({
     where: {
-      external_id: data.reference,
-      provider: 'paystack',
+      description: {
+        contains: data.reference,
+      },
     },
   });
 
   if (transaction) {
     // Update transaction status
-    await LedgerService.updateTransactionStatus(
-      transaction.id,
-      'completed',
-      {
-        paystackData: data,
-        processedAt: new Date().toISOString(),
-        paystackStatus: data.status,
-      }
-    );
+    await LedgerService.updateTransactionStatus(transaction.id, 'completed', {
+      paystackData: data,
+      processedAt: new Date().toISOString(),
+      paystackStatus: data.status,
+    });
 
     // Update recipient last used
     await prisma.transferRecipient.updateMany({
@@ -209,71 +196,63 @@ async function handleTransferSuccess(data: any) {
 
 async function handleTransferFailed(data: any) {
   console.log('Transfer failed:', data.reference);
-  
+
   // Find the transaction by reference
   const transaction = await prisma.transaction.findFirst({
     where: {
-      external_id: data.reference,
-      provider: 'paystack',
+      description: {
+        contains: data.reference,
+      },
     },
   });
 
   if (transaction) {
     // Update transaction status
-    await LedgerService.updateTransactionStatus(
-      transaction.id,
-      'failed',
-      {
-        paystackData: data,
-        error: data.failure_reason || 'Transfer failed',
-        processedAt: new Date().toISOString(),
-        paystackStatus: data.status,
-      }
-    );
-
-    // Reverse the account balance if it was previously completed
-    if (transaction.status === 'completed') {
-      await prisma.account.update({
-        where: { id: transaction.accountId },
-        data: {
-          balance: {
-            increment: Math.abs(transaction.amount), // Add back the amount
-          },
-        },
-      });
-    }
-  }
-}
-
-async function handleTransferReversed(data: any) {
-  console.log('Transfer reversed:', data.reference);
-  
-  // Find the transaction by reference
-  const transaction = await prisma.transaction.findFirst({
-    where: {
-      external_id: data.reference,
-      provider: 'paystack',
-    },
-  });
-
-  if (transaction) {
-    // Update transaction status
-    await LedgerService.updateTransactionStatus(
-      transaction.id,
-      'reversed',
-      {
-        paystackData: data,
-        processedAt: new Date().toISOString(),
-        paystackStatus: data.status,
-      }
-    );
+    await LedgerService.updateTransactionStatus(transaction.id, 'failed', {
+      paystackData: data,
+      error: data.failure_reason || 'Transfer failed',
+      processedAt: new Date().toISOString(),
+      paystackStatus: data.status,
+    });
 
     // Reverse the account balance
     await prisma.account.update({
       where: { id: transaction.accountId },
       data: {
         balance: {
-          increment: Math.abs(transaction.amount), // Add back the amount
+          increment: Math.abs(Number(transaction.amount)), // Add back the amount
+        },
+      },
+    });
+  }
+}
+
+async function handleTransferReversed(data: any) {
+  console.log('Transfer reversed:', data.reference);
+
+  // Find the transaction by reference
+  const transaction = await prisma.transaction.findFirst({
+    where: {
+      description: {
+        contains: data.reference,
+      },
+    },
+  });
+
+  if (transaction) {
+    // Update transaction status
+    await LedgerService.updateTransactionStatus(transaction.id, 'reversed', {
+      paystackData: data,
+      processedAt: new Date().toISOString(),
+      paystackStatus: data.status,
+    });
+
+    // Reverse the account balance
+    await prisma.account.update({
+      where: { id: transaction.accountId },
+      data: {
+        balance: {
+          increment: Math.abs(Number(transaction.amount)), // Add back the amount
         },
       },
     });
@@ -282,28 +261,28 @@ async function handleTransferReversed(data: any) {
 
 async function handleSubscriptionCreate(data: any) {
   console.log('Subscription created:', data.subscription_code);
-  
+
   // Handle subscription creation
   // This would depend on your subscription logic
 }
 
 async function handleSubscriptionDisable(data: any) {
   console.log('Subscription disabled:', data.subscription_code);
-  
+
   // Handle subscription disable
   // This would depend on your subscription logic
 }
 
 async function handleInvoiceCreate(data: any) {
   console.log('Invoice created:', data.invoice_number);
-  
+
   // Handle invoice creation
   // This would depend on your invoice logic
 }
 
 async function handleInvoicePaymentFailed(data: any) {
   console.log('Invoice payment failed:', data.invoice_number);
-  
+
   // Handle invoice payment failure
   // This would depend on your invoice logic
 }
@@ -312,12 +291,13 @@ async function handleInvoicePaymentFailed(data: any) {
 export async function cleanupProcessedWebhooks() {
   const oneDayAgo = new Date();
   oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-  
+
   // Remove old webhook IDs from memory
   // In production, you'd want to use Redis or a database for this
   for (const webhookId of processedWebhooks) {
     // This is a simplified cleanup - in production you'd track timestamps
-    if (Math.random() < 0.1) { // 10% chance to clean up
+    if (Math.random() < 0.1) {
+      // 10% chance to clean up
       processedWebhooks.delete(webhookId);
     }
   }

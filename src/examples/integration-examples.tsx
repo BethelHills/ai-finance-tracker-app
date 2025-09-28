@@ -3,7 +3,10 @@
  * Practical examples of how to use the implemented integrations
  */
 
-import { PlaidLinkComponent, usePlaidLinkManager } from '@/components/plaid/plaid-link-component';
+import {
+  PlaidLinkComponent,
+  usePlaidLinkManager,
+} from '@/components/plaid/plaid-link-component';
 import { PaystackIntegration } from '@/lib/paystack-integration';
 import { LedgerService } from '@/lib/database/ledger-models';
 
@@ -17,9 +20,9 @@ export class PlaidIntegrationExample {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId }),
       });
-      
+
       const { link_token } = await response.json();
-      
+
       // 2. Use PlaidLinkComponent in your React component
       // This would be in your JSX:
       /*
@@ -48,7 +51,7 @@ export class PlaidIntegrationExample {
         }}
       />
       */
-      
+
       return { link_token };
     } catch (error) {
       console.error('Plaid integration failed:', error);
@@ -64,7 +67,7 @@ export class PaystackTransferExample {
       // 1. List banks
       const banks = await PaystackIntegration.listBanks();
       console.log('Available banks:', banks.length);
-      
+
       // 2. Create transfer recipient
       const recipient = await PaystackIntegration.createTransferRecipient(
         'John Doe',
@@ -73,7 +76,7 @@ export class PaystackTransferExample {
         '044' // First Bank code
       );
       console.log('Recipient created:', recipient.id);
-      
+
       // 3. Initiate transfer
       const transfer = await PaystackIntegration.initiateTransfer(
         recipient.id,
@@ -82,20 +85,20 @@ export class PaystackTransferExample {
         `TRF_${Date.now()}`
       );
       console.log('Transfer initiated:', transfer.reference);
-      
+
       // 4. Verify transfer
       const verifiedTransfer = await PaystackIntegration.verifyTransfer(
         transfer.reference
       );
       console.log('Transfer status:', verifiedTransfer.status);
-      
+
       return verifiedTransfer;
     } catch (error) {
       console.error('Paystack transfer failed:', error);
       throw error;
     }
   }
-  
+
   static async createPaymentRequest() {
     try {
       // Create payment request
@@ -106,7 +109,7 @@ export class PaystackTransferExample {
         'Payment for product',
         'https://yourapp.com/payment/callback'
       );
-      
+
       console.log('Payment URL:', paymentRequest.authorization_url);
       return paymentRequest;
     } catch (error) {
@@ -127,14 +130,14 @@ export class WebhookExample {
         .createHmac('sha512', secret)
         .update(payload)
         .digest('hex');
-      
+
       if (hash !== signature) {
         throw new Error('Invalid signature');
       }
-      
+
       const event = JSON.parse(payload);
       console.log('Processing webhook event:', event.event);
-      
+
       // Handle different event types
       switch (event.event) {
         case 'charge.success':
@@ -146,30 +149,26 @@ export class WebhookExample {
         default:
           console.log('Unhandled event:', event.event);
       }
-      
+
       return { success: true };
     } catch (error) {
       console.error('Webhook handling failed:', error);
       throw error;
     }
   }
-  
+
   private static async handleChargeSuccess(data: any) {
     // Update transaction in ledger
-    await LedgerService.updateTransactionStatus(
-      data.reference,
-      'completed',
-      { paystackData: data }
-    );
+    await LedgerService.updateTransactionStatus(data.reference, 'completed', {
+      paystackData: data,
+    });
   }
-  
+
   private static async handleTransferSuccess(data: any) {
     // Update transfer status
-    await LedgerService.updateTransactionStatus(
-      data.reference,
-      'completed',
-      { paystackData: data }
-    );
+    await LedgerService.updateTransactionStatus(data.reference, 'completed', {
+      paystackData: data,
+    });
   }
 }
 
@@ -182,7 +181,7 @@ export class LedgerExample {
         external_id: `TXN_${Date.now()}`,
         user_id: 'user_123',
         account_id: 'account_456',
-        amount: 100.00,
+        amount: 100.0,
         currency: 'USD',
         type: 'income',
         description: 'Salary payment',
@@ -193,7 +192,7 @@ export class LedgerExample {
           department: 'engineering',
         },
       });
-      
+
       console.log('Transaction created:', transaction.id);
       return transaction;
     } catch (error) {
@@ -201,19 +200,19 @@ export class LedgerExample {
       throw error;
     }
   }
-  
+
   static async getTransactionStats(userId: string) {
     try {
       const startDate = new Date();
       startDate.setMonth(startDate.getMonth() - 1);
       const endDate = new Date();
-      
+
       const stats = await LedgerService.getTransactionStats(
         userId,
         startDate,
         endDate
       );
-      
+
       console.log('Transaction stats:', stats);
       return stats;
     } catch (error) {
@@ -221,20 +220,20 @@ export class LedgerExample {
       throw error;
     }
   }
-  
+
   static async reconcileAccount(accountId: string) {
     try {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - 30);
       const endDate = new Date();
-      
+
       const reconciliation = await LedgerService.reconcileTransactions(
         'user_123',
         accountId,
         startDate,
         endDate
       );
-      
+
       console.log('Reconciliation results:', reconciliation);
       return reconciliation;
     } catch (error) {
@@ -249,7 +248,7 @@ export class CompleteIntegrationExample {
   static async fullUserOnboarding(userId: string, userEmail: string) {
     try {
       console.log('Starting complete user onboarding...');
-      
+
       // 1. Create user account
       const account = await LedgerService.createAccount({
         user_id: userId,
@@ -259,19 +258,19 @@ export class CompleteIntegrationExample {
         currency: 'USD',
         provider: 'manual',
       });
-      
+
       // 2. Set up Plaid integration
       const plaidFlow = await PlaidIntegrationExample.completePlaidFlow(userId);
-      
+
       // 3. Set up Paystack for Nigerian payments
       const banks = await PaystackIntegration.listBanks();
-      
+
       // 4. Create initial transaction
       const transaction = await LedgerExample.createTransaction();
-      
+
       // 5. Get initial stats
       const stats = await LedgerExample.getTransactionStats(userId);
-      
+
       console.log('User onboarding complete!');
       return {
         account,
@@ -289,25 +288,20 @@ export class CompleteIntegrationExample {
 
 // Example 6: React Component Integration
 export const IntegrationReactExample = () => {
-  const { 
-    linkToken, 
-    isLoading, 
-    error, 
-    createLinkToken, 
-    exchangePublicToken 
-  } = usePlaidLinkManager();
-  
+  const { linkToken, isLoading, error, createLinkToken, exchangePublicToken } =
+    usePlaidLinkManager();
+
   const handlePlaidSuccess = async (publicToken: string, metadata: any) => {
     try {
       // Exchange token
       const result = await exchangePublicToken(publicToken);
-      
+
       // Create ledger transaction
       await LedgerService.createTransaction({
         external_id: metadata.transaction_id,
         user_id: 'user_123',
         account_id: 'account_456',
-        amount: 100.00,
+        amount: 100.0,
         currency: 'USD',
         type: 'income',
         description: 'Plaid transaction',
@@ -315,13 +309,13 @@ export const IntegrationReactExample = () => {
         provider: 'plaid',
         provider_data: metadata,
       });
-      
+
       console.log('Plaid integration successful!');
     } catch (error) {
       console.error('Plaid integration failed:', error);
     }
   };
-  
+
   return (
     <div>
       <PlaidLinkComponent
@@ -339,12 +333,15 @@ export const webhookHandler = async (request: Request) => {
   try {
     const payload = await request.text();
     const signature = request.headers.get('x-paystack-signature');
-    
+
     if (!signature) {
       return new Response('Missing signature', { status: 400 });
     }
-    
-    const result = await WebhookExample.handlePaystackWebhook(payload, signature);
+
+    const result = await WebhookExample.handlePaystackWebhook(
+      payload,
+      signature
+    );
     return new Response(JSON.stringify(result), { status: 200 });
   } catch (error) {
     console.error('Webhook handler error:', error);

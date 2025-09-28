@@ -117,6 +117,11 @@ export function TransactionManager() {
   const types = ['all', 'INCOME', 'EXPENSE', 'TRANSFER'];
   const statuses = ['all', 'completed', 'pending', 'failed'];
 
+  const handleAddTransaction = () => {
+    // Navigate to add transaction form or open modal
+    window.location.href = '/transactions?action=add';
+  };
+
   const filteredTransactions = useMemo(() => {
     let filtered = mockTransactions;
 
@@ -226,7 +231,7 @@ export function TransactionManager() {
             <Upload className='h-4 w-4 mr-2' />
             Import
           </Button>
-          <Button size='sm'>
+          <Button size='sm' onClick={handleAddTransaction}>
             <Plus className='h-4 w-4 mr-2' />
             Add Transaction
           </Button>

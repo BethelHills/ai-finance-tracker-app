@@ -1,8 +1,13 @@
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-08-27.basil',
-});
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY environment variable is not set');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2025-08-27.basil',
+  });
+};
 
 export interface StripeAccount {
   id: string;
@@ -26,8 +31,13 @@ export class StripeService {
   /**
    * Create a Stripe Connect account for a user
    */
-  static async createConnectAccount(userId: string, email: string, country: string = 'US'): Promise<StripeAccount> {
+  static async createConnectAccount(
+    userId: string,
+    email: string,
+    country: string = 'US'
+  ): Promise<StripeAccount> {
     try {
+      const stripe = getStripe();
       const account = await stripe.accounts.create({
         type: 'express',
         country,
@@ -60,8 +70,13 @@ export class StripeService {
   /**
    * Create account link for onboarding
    */
-  static async createAccountLink(accountId: string, refreshUrl: string, returnUrl: string): Promise<string> {
+  static async createAccountLink(
+    accountId: string,
+    refreshUrl: string,
+    returnUrl: string
+  ): Promise<string> {
     try {
+      const stripe = getStripe();
       const accountLink = await stripe.accountLinks.create({
         account: accountId,
         refresh_url: refreshUrl,
@@ -85,6 +100,7 @@ export class StripeService {
     metadata: Record<string, string> = {}
   ): Promise<PaymentIntent> {
     try {
+      const stripe = getStripe();
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to cents
         currency: currency.toLowerCase(),
@@ -117,6 +133,7 @@ export class StripeService {
     description: string
   ): Promise<string> {
     try {
+      const stripe = getStripe();
       const transfer = await stripe.transfers.create({
         amount: Math.round(amount * 100),
         currency: currency.toLowerCase(),
@@ -140,12 +157,16 @@ export class StripeService {
     currency: string;
   }> {
     try {
+      const stripe = getStripe();
       const balance = await stripe.balance.retrieve({
         stripeAccount: accountId,
       });
 
-      const availableBalance = balance.available.find(b => b.currency === 'usd') || balance.available[0];
-      const pendingBalance = balance.pending.find(b => b.currency === 'usd') || balance.pending[0];
+      const availableBalance =
+        balance.available.find(b => b.currency === 'usd') ||
+        balance.available[0];
+      const pendingBalance =
+        balance.pending.find(b => b.currency === 'usd') || balance.pending[0];
 
       return {
         available: availableBalance?.amount || 0,
@@ -163,6 +184,7 @@ export class StripeService {
    */
   static async getPaymentMethods(customerId: string): Promise<any[]> {
     try {
+      const stripe = getStripe();
       const paymentMethods = await stripe.paymentMethods.list({
         customer: customerId,
         type: 'card',
@@ -178,8 +200,13 @@ export class StripeService {
   /**
    * Create a customer
    */
-  static async createCustomer(email: string, name: string, metadata: Record<string, string> = {}): Promise<string> {
+  static async createCustomer(
+    email: string,
+    name: string,
+    metadata: Record<string, string> = {}
+  ): Promise<string> {
     try {
+      const stripe = getStripe();
       const customer = await stripe.customers.create({
         email,
         name,

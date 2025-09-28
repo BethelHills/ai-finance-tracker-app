@@ -5,12 +5,9 @@ import { SecureBusinessServer } from '@/lib/secure-business-server';
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession();
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const transactionData = await request.json();
@@ -27,16 +24,19 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      transaction: result 
+      transaction: result,
     });
   } catch (error) {
     console.error('Secure transaction processing error:', error);
     return NextResponse.json(
-      { 
-        error: error instanceof Error ? error.message : 'Transaction processing failed',
-        success: false 
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Transaction processing failed',
+        success: false,
       },
       { status: 500 }
     );

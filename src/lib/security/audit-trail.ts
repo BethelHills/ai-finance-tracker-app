@@ -21,7 +21,14 @@ export interface AuditEvent {
   previousHash?: string;
   signature: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
-  category: 'authentication' | 'authorization' | 'data_access' | 'data_modification' | 'payment' | 'compliance' | 'system';
+  category:
+    | 'authentication'
+    | 'authorization'
+    | 'data_access'
+    | 'data_modification'
+    | 'payment'
+    | 'compliance'
+    | 'system';
 }
 
 export interface TransactionRecord {
@@ -74,7 +81,14 @@ export class AuditTrailService {
       userAgent?: string;
       sessionId?: string;
       severity?: 'low' | 'medium' | 'high' | 'critical';
-      category?: 'authentication' | 'authorization' | 'data_access' | 'data_modification' | 'payment' | 'compliance' | 'system';
+      category?:
+        | 'authentication'
+        | 'authorization'
+        | 'data_access'
+        | 'data_modification'
+        | 'payment'
+        | 'compliance'
+        | 'system';
     } = {}
   ): Promise<AuditEvent> {
     const timestamp = new Date();
@@ -179,7 +193,9 @@ export class AuditTrailService {
     await this.storeTransactionRecord(transactionRecord);
 
     // Log for monitoring
-    console.log(`[TRANSACTION] ${transactionType}: ${userId} - ${amount} ${currency}`);
+    console.log(
+      `[TRANSACTION] ${transactionType}: ${userId} - ${amount} ${currency}`
+    );
 
     return transactionRecord;
   }
@@ -205,8 +221,11 @@ export class AuditTrailService {
       // Verify each event
       for (let i = 0; i < events.length; i++) {
         const event = events[i];
-        const isValid = await this.verifyEventIntegrity(event, i > 0 ? events[i - 1] : null);
-        
+        const isValid = await this.verifyEventIntegrity(
+          event,
+          i > 0 ? events[i - 1] : null
+        );
+
         if (isValid) {
           verifiedEvents++;
         } else {
@@ -242,7 +261,11 @@ export class AuditTrailService {
     const violations = this.identifyViolations(events, transactions);
 
     // Generate recommendations
-    const recommendations = this.generateRecommendations(events, transactions, violations);
+    const recommendations = this.generateRecommendations(
+      events,
+      transactions,
+      violations
+    );
 
     // Check audit trail integrity
     const integrityCheck = await this.verifyAuditTrailIntegrity();
@@ -261,17 +284,15 @@ export class AuditTrailService {
   /**
    * Search audit events
    */
-  static async searchAuditEvents(
-    filters: {
-      userId?: string;
-      action?: string;
-      resource?: string;
-      severity?: string;
-      category?: string;
-      startDate?: Date;
-      endDate?: Date;
-    }
-  ): Promise<AuditEvent[]> {
+  static async searchAuditEvents(filters: {
+    userId?: string;
+    action?: string;
+    resource?: string;
+    severity?: string;
+    category?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }): Promise<AuditEvent[]> {
     // In a real implementation, this would query the database
     // For now, return mock data
     return [];
@@ -341,7 +362,10 @@ export class AuditTrailService {
     return undefined;
   }
 
-  private static calculateEventHash(eventData: any, previousHash?: string): string {
+  private static calculateEventHash(
+    eventData: any,
+    previousHash?: string
+  ): string {
     const dataToHash = {
       ...eventData,
       previousHash,
@@ -353,7 +377,10 @@ export class AuditTrailService {
       .digest('hex');
   }
 
-  private static calculateTransactionHash(transactionData: any, previousHash?: string): string {
+  private static calculateTransactionHash(
+    transactionData: any,
+    previousHash?: string
+  ): string {
     const dataToHash = {
       ...transactionData,
       previousHash,
@@ -365,7 +392,10 @@ export class AuditTrailService {
       .digest('hex');
   }
 
-  private static async signEvent(eventData: any, hash: string): Promise<string> {
+  private static async signEvent(
+    eventData: any,
+    hash: string
+  ): Promise<string> {
     // In a real implementation, this would use a private key
     return crypto
       .createHmac('sha256', 'audit-signing-key')
@@ -373,7 +403,10 @@ export class AuditTrailService {
       .digest('hex');
   }
 
-  private static async signTransaction(transactionData: any, hash: string): Promise<string> {
+  private static async signTransaction(
+    transactionData: any,
+    hash: string
+  ): Promise<string> {
     // In a real implementation, this would use a private key
     return crypto
       .createHmac('sha256', 'transaction-signing-key')
@@ -389,12 +422,21 @@ export class AuditTrailService {
       .digest('hex');
   }
 
-  private static sanitizeDetails(details: Record<string, any>): Record<string, any> {
+  private static sanitizeDetails(
+    details: Record<string, any>
+  ): Record<string, any> {
     const sanitized = { ...details };
-    
+
     // Remove sensitive information
-    const sensitiveFields = ['password', 'token', 'secret', 'key', 'ssn', 'cardNumber'];
-    
+    const sensitiveFields = [
+      'password',
+      'token',
+      'secret',
+      'key',
+      'ssn',
+      'cardNumber',
+    ];
+
     for (const field of sensitiveFields) {
       if (sanitized[field]) {
         sanitized[field] = '***REDACTED***';
@@ -409,7 +451,9 @@ export class AuditTrailService {
     console.log(`[AUDIT_STORE] Stored event: ${event.id}`);
   }
 
-  private static async storeTransactionRecord(transaction: TransactionRecord): Promise<void> {
+  private static async storeTransactionRecord(
+    transaction: TransactionRecord
+  ): Promise<void> {
     // In a real implementation, this would store in an immutable database
     console.log(`[TRANSACTION_STORE] Stored transaction: ${transaction.id}`);
   }
@@ -419,17 +463,26 @@ export class AuditTrailService {
     return [];
   }
 
-  private static async getAuditEventsInRange(startDate: Date, endDate: Date): Promise<AuditEvent[]> {
+  private static async getAuditEventsInRange(
+    startDate: Date,
+    endDate: Date
+  ): Promise<AuditEvent[]> {
     // Mock implementation
     return [];
   }
 
-  private static async getTransactionsInRange(startDate: Date, endDate: Date): Promise<TransactionRecord[]> {
+  private static async getTransactionsInRange(
+    startDate: Date,
+    endDate: Date
+  ): Promise<TransactionRecord[]> {
     // Mock implementation
     return [];
   }
 
-  private static async verifyEventIntegrity(event: AuditEvent, previousEvent: AuditEvent | null): Promise<boolean> {
+  private static async verifyEventIntegrity(
+    event: AuditEvent,
+    previousEvent: AuditEvent | null
+  ): Promise<boolean> {
     // Verify hash
     const expectedHash = this.calculateEventHash(
       {
@@ -475,12 +528,18 @@ export class AuditTrailService {
     return event.signature === expectedSignature;
   }
 
-  private static calculateComplianceScore(events: AuditEvent[], transactions: TransactionRecord[]): number {
+  private static calculateComplianceScore(
+    events: AuditEvent[],
+    transactions: TransactionRecord[]
+  ): number {
     // Mock implementation - would calculate based on compliance rules
     return 95;
   }
 
-  private static identifyViolations(events: AuditEvent[], transactions: TransactionRecord[]): string[] {
+  private static identifyViolations(
+    events: AuditEvent[],
+    transactions: TransactionRecord[]
+  ): string[] {
     // Mock implementation - would identify compliance violations
     return [];
   }

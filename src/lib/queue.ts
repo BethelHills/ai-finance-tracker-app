@@ -35,70 +35,82 @@ export interface AICategorizationJob {
 }
 
 // Queue definitions
-export const transactionSyncQueue = new Queue<TransactionSyncJob>('transaction-sync', {
-  connection: redis,
-  defaultJobOptions: {
-    removeOnComplete: 100,
-    removeOnFail: 50,
-    attempts: 3,
-    backoff: {
-      type: 'exponential',
-      delay: 2000,
+export const transactionSyncQueue = new Queue<TransactionSyncJob>(
+  'transaction-sync',
+  {
+    connection: redis,
+    defaultJobOptions: {
+      removeOnComplete: 100,
+      removeOnFail: 50,
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 2000,
+      },
     },
-  },
-});
+  }
+);
 
-export const reconciliationQueue = new Queue<ReconciliationJob>('reconciliation', {
-  connection: redis,
-  defaultJobOptions: {
-    removeOnComplete: 50,
-    removeOnFail: 25,
-    attempts: 2,
-    backoff: {
-      type: 'exponential',
-      delay: 5000,
+export const reconciliationQueue = new Queue<ReconciliationJob>(
+  'reconciliation',
+  {
+    connection: redis,
+    defaultJobOptions: {
+      removeOnComplete: 50,
+      removeOnFail: 25,
+      attempts: 2,
+      backoff: {
+        type: 'exponential',
+        delay: 5000,
+      },
     },
-  },
-});
+  }
+);
 
-export const webhookProcessingQueue = new Queue<WebhookProcessingJob>('webhook-processing', {
-  connection: redis,
-  defaultJobOptions: {
-    removeOnComplete: 200,
-    removeOnFail: 100,
-    attempts: 5,
-    backoff: {
-      type: 'exponential',
-      delay: 1000,
+export const webhookProcessingQueue = new Queue<WebhookProcessingJob>(
+  'webhook-processing',
+  {
+    connection: redis,
+    defaultJobOptions: {
+      removeOnComplete: 200,
+      removeOnFail: 100,
+      attempts: 5,
+      backoff: {
+        type: 'exponential',
+        delay: 1000,
+      },
     },
-  },
-});
+  }
+);
 
-export const aiCategorizationQueue = new Queue<AICategorizationJob>('ai-categorization', {
-  connection: redis,
-  defaultJobOptions: {
-    removeOnComplete: 500,
-    removeOnFail: 100,
-    attempts: 2,
-    backoff: {
-      type: 'fixed',
-      delay: 1000,
+export const aiCategorizationQueue = new Queue<AICategorizationJob>(
+  'ai-categorization',
+  {
+    connection: redis,
+    defaultJobOptions: {
+      removeOnComplete: 500,
+      removeOnFail: 100,
+      attempts: 2,
+      backoff: {
+        type: 'fixed',
+        delay: 1000,
+      },
     },
-  },
-});
+  }
+);
 
 // Job processors
 export class QueueProcessors {
   // Transaction Sync Processor
   static async processTransactionSync(job: Job<TransactionSyncJob>) {
     const { userId, accessToken, startDate, endDate } = job.data;
-    
+
     try {
       console.log(`Processing transaction sync for user ${userId}`);
-      
+
       // Import PlaidService dynamically to avoid circular dependencies
       const { PlaidService } = await import('./plaid-service');
-      
+
       // Get all transactions from Plaid
       const transactions = await PlaidService.getAllTransactions(
         accessToken,
@@ -117,11 +129,12 @@ export class QueueProcessors {
         });
       }
 
-      console.log(`Synced ${transactions.length} transactions for user ${userId}`);
-      
+      console.log(
+        `Synced ${transactions.length} transactions for user ${userId}`
+      );
+
       // Update job progress
       await job.updateProgress(100);
-      
     } catch (error) {
       console.error(`Transaction sync failed for user ${userId}:`, error);
       throw error;
@@ -133,14 +146,16 @@ export class QueueProcessors {
     const { userId, provider, accountId, startDate, endDate } = job.data;
     let jobId: string | undefined;
     let MongoService: any;
-    
+
     try {
-      console.log(`Processing reconciliation for user ${userId}, provider ${provider}`);
-      
+      console.log(
+        `Processing reconciliation for user ${userId}, provider ${provider}`
+      );
+
       // Import MongoDBService
       const { MongoDBService } = await import('./mongodb-models');
       MongoService = MongoDBService;
-      
+
       // Create reconciliation job record
       jobId = await MongoService.createReconciliationJob({
         userId,
@@ -162,7 +177,7 @@ export class QueueProcessors {
           const { PlaidService } = await import('./plaid-service');
           const { PrismaClient } = await import('@prisma/client');
           const prisma = new PrismaClient();
-          
+
           try {
             const user = await prisma.user.findUnique({
               where: { id: userId },
@@ -178,7 +193,7 @@ export class QueueProcessors {
 
               for (const transaction of transactions) {
                 recordsProcessed++;
-                
+
                 const existingTransaction = await prisma.transaction.findFirst({
                   where: { plaidTransactionId: transaction.transaction_id },
                 });
@@ -195,9 +210,12 @@ export class QueueProcessors {
                       date: new Date(transaction.date),
                       type: transaction.amount > 0 ? 'INCOME' : 'EXPENSE',
                       userId,
-                      accountId: (await prisma.account.findFirst({
-                        where: { plaidAccountId: transaction.account_id }
-                      }))?.id || '',
+                      accountId:
+                        (
+                          await prisma.account.findFirst({
+                            where: { plaidAccountId: transaction.account_id },
+                          })
+                        )?.id || '',
                       plaidTransactionId: transaction.transaction_id,
                       plaidAccountId: transaction.account_id,
                     },
@@ -231,11 +249,12 @@ export class QueueProcessors {
         recordsUnmatched,
       });
 
-      console.log(`Reconciliation completed for user ${userId}: ${recordsProcessed} processed, ${recordsMatched} matched, ${recordsUnmatched} unmatched`);
-      
+      console.log(
+        `Reconciliation completed for user ${userId}: ${recordsProcessed} processed, ${recordsMatched} matched, ${recordsUnmatched} unmatched`
+      );
     } catch (error) {
       console.error(`Reconciliation failed for user ${userId}:`, error);
-      
+
       // Update job status to failed
       if (jobId) {
         try {
@@ -244,10 +263,13 @@ export class QueueProcessors {
             error: error instanceof Error ? error.message : 'Unknown error',
           });
         } catch (updateError) {
-          console.error('Failed to update reconciliation job status:', updateError);
+          console.error(
+            'Failed to update reconciliation job status:',
+            updateError
+          );
         }
       }
-      
+
       throw error;
     }
   }
@@ -255,13 +277,13 @@ export class QueueProcessors {
   // Webhook Processing Processor
   static async processWebhook(job: Job<WebhookProcessingJob>) {
     const { eventId, provider, eventType, payload } = job.data;
-    
+
     try {
       console.log(`Processing webhook: ${provider} - ${eventType}`);
-      
+
       // Import MongoDBService
       const { MongoDBService } = await import('./mongodb-models');
-      
+
       // Process webhook based on provider and event type
       switch (provider) {
         case 'plaid':
@@ -282,14 +304,19 @@ export class QueueProcessors {
 
       // Mark webhook as processed
       await MongoDBService.markWebhookProcessed(eventId);
-      
     } catch (error) {
-      console.error(`Webhook processing failed for ${provider} - ${eventType}:`, error);
-      
+      console.error(
+        `Webhook processing failed for ${provider} - ${eventType}:`,
+        error
+      );
+
       // Mark webhook as processed with error
       const { MongoDBService } = await import('./mongodb-models');
-      await MongoDBService.markWebhookProcessed(eventId, error instanceof Error ? error.message : 'Unknown error');
-      
+      await MongoDBService.markWebhookProcessed(
+        eventId,
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+
       throw error;
     }
   }
@@ -297,20 +324,25 @@ export class QueueProcessors {
   // AI Categorization Processor
   static async processAICategorization(job: Job<AICategorizationJob>) {
     const { transactionId, description, amount, userId } = job.data;
-    
+
     try {
-      console.log(`Processing AI categorization for transaction ${transactionId}`);
-      
+      console.log(
+        `Processing AI categorization for transaction ${transactionId}`
+      );
+
       // Import AI service
       const { AIService } = await import('./ai-service');
-      
+
       // Categorize transaction
-      const categorization = await AIService.categorizeTransaction(description, amount);
-      
+      const categorization = await AIService.categorizeTransaction(
+        description,
+        amount
+      );
+
       // Update transaction in database
       const { PrismaClient } = await import('@prisma/client');
       const prisma = new PrismaClient();
-      
+
       try {
         await prisma.transaction.updateMany({
           where: { plaidTransactionId: transactionId },
@@ -340,9 +372,11 @@ export class QueueProcessors {
           confidence: categorization.confidence,
         },
       });
-      
     } catch (error) {
-      console.error(`AI categorization failed for transaction ${transactionId}:`, error);
+      console.error(
+        `AI categorization failed for transaction ${transactionId}:`,
+        error
+      );
       throw error;
     }
   }
@@ -363,7 +397,10 @@ export class QueueProcessors {
     // Implementation for Paystack webhooks
   }
 
-  private static async processFlutterwaveWebhook(eventType: string, payload: any) {
+  private static async processFlutterwaveWebhook(
+    eventType: string,
+    payload: any
+  ) {
     console.log(`Processing Flutterwave webhook: ${eventType}`);
     // Implementation for Flutterwave webhooks
   }
@@ -400,7 +437,12 @@ export function initializeWorkers() {
 
 // Queue management functions
 export class QueueManager {
-  static async addTransactionSync(userId: string, accessToken: string, startDate: string, endDate: string) {
+  static async addTransactionSync(
+    userId: string,
+    accessToken: string,
+    startDate: string,
+    endDate: string
+  ) {
     return await transactionSyncQueue.add('sync-transactions', {
       userId,
       accessToken,
@@ -409,17 +451,32 @@ export class QueueManager {
     });
   }
 
-  static async addReconciliation(userId: string, provider: string, accountId?: string, startDate?: string, endDate?: string) {
+  static async addReconciliation(
+    userId: string,
+    provider: string,
+    accountId?: string,
+    startDate?: string,
+    endDate?: string
+  ) {
     return await reconciliationQueue.add('reconcile-accounts', {
       userId,
       provider: provider as any,
       accountId,
-      startDate: startDate || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      startDate:
+        startDate ||
+        new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split('T')[0],
       endDate: endDate || new Date().toISOString().split('T')[0],
     });
   }
 
-  static async addWebhookProcessing(eventId: string, provider: string, eventType: string, payload: any) {
+  static async addWebhookProcessing(
+    eventId: string,
+    provider: string,
+    eventType: string,
+    payload: any
+  ) {
     return await webhookProcessingQueue.add('process-webhook', {
       eventId,
       provider,
@@ -428,7 +485,12 @@ export class QueueManager {
     });
   }
 
-  static async addAICategorization(transactionId: string, description: string, amount: number, userId: string) {
+  static async addAICategorization(
+    transactionId: string,
+    description: string,
+    amount: number,
+    userId: string
+  ) {
     return await aiCategorizationQueue.add('categorize-transaction', {
       transactionId,
       description,

@@ -20,7 +20,8 @@ export async function GET(request: NextRequest) {
         resourceId: 'session_456',
         details: { ipAddress: '192.168.1.100', userAgent: 'Mozilla/5.0...' },
         ipAddress: '192.168.1.100',
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        userAgent:
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         sessionId: 'session_456',
         severity: 'low',
         category: 'authentication',
@@ -34,9 +35,10 @@ export async function GET(request: NextRequest) {
         action: 'transaction_created',
         resource: 'transaction',
         resourceId: 'tx_789',
-        details: { amount: 150.00, type: 'expense', category: 'groceries' },
+        details: { amount: 150.0, type: 'expense', category: 'groceries' },
         ipAddress: '192.168.1.100',
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        userAgent:
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         sessionId: 'session_456',
         severity: 'medium',
         category: 'data_modification',
@@ -52,7 +54,8 @@ export async function GET(request: NextRequest) {
         resourceId: 'acc_101',
         details: { provider: 'plaid', institution: 'Chase Bank' },
         ipAddress: '192.168.1.100',
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        userAgent:
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         sessionId: 'session_456',
         severity: 'high',
         category: 'data_modification',
@@ -68,7 +71,8 @@ export async function GET(request: NextRequest) {
         resourceId: 'session_789',
         details: { ipAddress: '192.168.1.200', reason: 'invalid_password' },
         ipAddress: '192.168.1.200',
-        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        userAgent:
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
         sessionId: 'session_789',
         severity: 'medium',
         category: 'authentication',
@@ -82,9 +86,10 @@ export async function GET(request: NextRequest) {
         action: 'payment_processed',
         resource: 'payment',
         resourceId: 'pay_202',
-        details: { amount: 75.50, currency: 'USD', provider: 'stripe' },
+        details: { amount: 75.5, currency: 'USD', provider: 'stripe' },
         ipAddress: '192.168.1.100',
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        userAgent:
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         sessionId: 'session_456',
         severity: 'high',
         category: 'payment',
@@ -96,10 +101,14 @@ export async function GET(request: NextRequest) {
     const stats = {
       totalEvents: events.length,
       eventsByCategory: {
-        authentication: events.filter(e => e.category === 'authentication').length,
-        authorization: events.filter(e => e.category === 'authorization').length,
+        authentication: events.filter(e => e.category === 'authentication')
+          .length,
+        authorization: events.filter(e => e.category === 'authorization')
+          .length,
         data_access: events.filter(e => e.category === 'data_access').length,
-        data_modification: events.filter(e => e.category === 'data_modification').length,
+        data_modification: events.filter(
+          e => e.category === 'data_modification'
+        ).length,
         payment: events.filter(e => e.category === 'payment').length,
         compliance: events.filter(e => e.category === 'compliance').length,
         system: events.filter(e => e.category === 'system').length,
@@ -111,11 +120,11 @@ export async function GET(request: NextRequest) {
         critical: events.filter(e => e.severity === 'critical').length,
       },
       eventsByUser: {
-        'user_123': events.filter(e => e.userId === 'user_123').length,
-        'user_456': events.filter(e => e.userId === 'user_456').length,
+        user_123: events.filter(e => e.userId === 'user_123').length,
+        user_456: events.filter(e => e.userId === 'user_456').length,
       },
-      recentActivity: events.filter(e => 
-        new Date(e.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)
+      recentActivity: events.filter(
+        e => new Date(e.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)
       ).length,
     };
 

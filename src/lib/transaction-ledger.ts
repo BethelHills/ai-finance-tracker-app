@@ -293,7 +293,12 @@ export class TransactionLedger {
     });
 
     const totalAssets = accounts
-      .filter(acc => acc.type === 'CHECKING' || acc.type === 'SAVINGS' || acc.type === 'INVESTMENT')
+      .filter(
+        acc =>
+          acc.type === 'CHECKING' ||
+          acc.type === 'SAVINGS' ||
+          acc.type === 'INVESTMENT'
+      )
       .reduce((sum, acc) => sum + Number(acc.balance), 0);
 
     const totalLiabilities = accounts
@@ -319,8 +324,10 @@ export class TransactionLedger {
       .filter(tx => tx.type === 'EXPENSE')
       .reduce((sum, tx) => sum + Math.abs(Number(tx.amount)), 0);
 
-    const savingsRate = monthlyIncome > 0 ? (monthlyIncome - monthlyExpenses) / monthlyIncome : 0;
-    const debtToIncomeRatio = monthlyIncome > 0 ? totalLiabilities / monthlyIncome : 0;
+    const savingsRate =
+      monthlyIncome > 0 ? (monthlyIncome - monthlyExpenses) / monthlyIncome : 0;
+    const debtToIncomeRatio =
+      monthlyIncome > 0 ? totalLiabilities / monthlyIncome : 0;
 
     return {
       totalAssets,
@@ -346,7 +353,11 @@ export class TransactionLedger {
     categoryBreakdown: any[];
     monthlyTrends: any[];
   }> {
-    const summary = await this.getTransactionSummary(userId, startDate, endDate);
+    const summary = await this.getTransactionSummary(
+      userId,
+      startDate,
+      endDate
+    );
     const healthMetrics = await this.getFinancialHealthMetrics(userId);
 
     // Get category breakdown
@@ -357,29 +368,44 @@ export class TransactionLedger {
       },
     });
 
-    const categoryBreakdown = transactions.reduce((acc, tx) => {
-      const category = tx.aiCategory || 'Uncategorized';
-      if (!acc[category]) {
-        acc[category] = { category, amount: 0, count: 0 };
-      }
-      acc[category].amount += Math.abs(Number(tx.amount));
-      acc[category].count += 1;
-      return acc;
-    }, {} as Record<string, any>);
+    const categoryBreakdown = transactions.reduce(
+      (acc, tx) => {
+        const category = tx.aiCategory || 'Uncategorized';
+        if (!acc[category]) {
+          acc[category] = { category, amount: 0, count: 0 };
+        }
+        acc[category].amount += Math.abs(Number(tx.amount));
+        acc[category].count += 1;
+        return acc;
+      },
+      {} as Record<string, any>
+    );
 
     // Get monthly trends
     const monthlyTrends = [];
     const currentDate = new Date(startDate);
     while (currentDate <= endDate) {
-      const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-      
-      const monthSummary = await this.getTransactionSummary(userId, monthStart, monthEnd);
+      const monthStart = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1
+      );
+      const monthEnd = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      );
+
+      const monthSummary = await this.getTransactionSummary(
+        userId,
+        monthStart,
+        monthEnd
+      );
       monthlyTrends.push({
         month: monthStart.toISOString().substring(0, 7),
         ...monthSummary,
       });
-      
+
       currentDate.setMonth(currentDate.getMonth() + 1);
     }
 

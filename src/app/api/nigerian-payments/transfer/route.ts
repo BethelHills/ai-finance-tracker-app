@@ -5,21 +5,18 @@ import { NigerianPaymentService } from '@/lib/nigerian-payment-service';
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession();
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { 
-      accountNumber, 
-      bankCode, 
-      amount, 
-      reason, 
+    const {
+      accountNumber,
+      bankCode,
+      amount,
+      reason,
       recipientName,
-      provider = 'paystack' // 'paystack' or 'flutterwave'
+      provider = 'paystack', // 'paystack' or 'flutterwave'
     } = await request.json();
 
     if (!accountNumber || !bankCode || !amount || !recipientName) {
@@ -55,15 +52,12 @@ export async function POST(request: NextRequest) {
         recipientName
       );
     } else {
-      return NextResponse.json(
-        { error: 'Invalid provider' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid provider' }, { status: 400 });
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      result 
+      result,
     });
   } catch (error) {
     console.error('Error processing transfer:', error);

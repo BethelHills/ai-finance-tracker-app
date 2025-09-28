@@ -48,7 +48,7 @@ export const PROVIDER_REQUIREMENTS: Record<string, ProviderRequirements> = {
       requestsPerDay: 10000,
     },
   },
-  
+
   paystack: {
     name: 'Paystack',
     region: 'Nigeria',
@@ -76,7 +76,7 @@ export const PROVIDER_REQUIREMENTS: Record<string, ProviderRequirements> = {
       requestsPerDay: 5000,
     },
   },
-  
+
   flutterwave: {
     name: 'Flutterwave',
     region: 'Africa',
@@ -104,11 +104,22 @@ export const PROVIDER_REQUIREMENTS: Record<string, ProviderRequirements> = {
       requestsPerDay: 10000,
     },
   },
-  
+
   stripe: {
     name: 'Stripe',
     region: 'Global',
-    currencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CHF', 'SEK', 'DKK', 'NOK'],
+    currencies: [
+      'USD',
+      'EUR',
+      'GBP',
+      'CAD',
+      'AUD',
+      'JPY',
+      'CHF',
+      'SEK',
+      'DKK',
+      'NOK',
+    ],
     businessRegistration: true,
     kycLevel: 'premium',
     transferLimits: {
@@ -148,7 +159,9 @@ export class ComplianceManager {
   /**
    * Get requirements for a specific provider
    */
-  static getProviderRequirements(provider: string): ProviderRequirements | null {
+  static getProviderRequirements(
+    provider: string
+  ): ProviderRequirements | null {
     return PROVIDER_REQUIREMENTS[provider] || null;
   }
 
@@ -182,13 +195,17 @@ export class ComplianceManager {
   /**
    * Get transfer limits for a provider
    */
-  static getTransferLimits(provider: string, userTier: 'basic' | 'premium' | 'enterprise') {
+  static getTransferLimits(
+    provider: string,
+    userTier: 'basic' | 'premium' | 'enterprise'
+  ) {
     const requirements = this.getProviderRequirements(provider);
     if (!requirements) {
       throw new Error(`Unknown provider: ${provider}`);
     }
 
-    const multiplier = userTier === 'enterprise' ? 10 : userTier === 'premium' ? 5 : 1;
+    const multiplier =
+      userTier === 'enterprise' ? 10 : userTier === 'premium' ? 5 : 1;
 
     return {
       daily: requirements.transferLimits.daily * multiplier,
@@ -263,7 +280,12 @@ export class ComplianceManager {
    */
   static getApiRateLimits(provider: string) {
     const requirements = this.getProviderRequirements(provider);
-    return requirements?.apiRateLimits || { requestsPerMinute: 60, requestsPerDay: 1000 };
+    return (
+      requirements?.apiRateLimits || {
+        requestsPerMinute: 60,
+        requestsPerDay: 1000,
+      }
+    );
   }
 
   /**
@@ -296,7 +318,7 @@ export class ComplianceManager {
    */
   static getProvidersForRegion(region: string): string[] {
     return Object.entries(PROVIDER_REQUIREMENTS)
-      .filter(([_, requirements]) => 
+      .filter(([_, requirements]) =>
         requirements.region.toLowerCase().includes(region.toLowerCase())
       )
       .map(([provider, _]) => provider);
@@ -306,15 +328,17 @@ export class ComplianceManager {
    * Get compliance summary for all providers
    */
   static getComplianceSummary() {
-    return Object.entries(PROVIDER_REQUIREMENTS).map(([provider, requirements]) => ({
-      provider,
-      name: requirements.name,
-      region: requirements.region,
-      currencies: requirements.currencies,
-      businessRegistration: requirements.businessRegistration,
-      kycLevel: requirements.kycLevel,
-      complianceStandards: requirements.complianceStandards,
-    }));
+    return Object.entries(PROVIDER_REQUIREMENTS).map(
+      ([provider, requirements]) => ({
+        provider,
+        name: requirements.name,
+        region: requirements.region,
+        currencies: requirements.currencies,
+        businessRegistration: requirements.businessRegistration,
+        kycLevel: requirements.kycLevel,
+        complianceStandards: requirements.complianceStandards,
+      })
+    );
   }
 }
 

@@ -5,12 +5,9 @@ import { PlaidService } from '@/lib/plaid-service';
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession();
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const linkToken = await PlaidService.createLinkToken(session.user.id);

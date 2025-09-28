@@ -1,9 +1,19 @@
-import { Configuration, PlaidApi, PlaidEnvironments, LinkTokenCreateRequest, AccountsGetRequest, TransactionsGetRequest } from 'plaid';
+import {
+  Configuration,
+  PlaidApi,
+  PlaidEnvironments,
+  LinkTokenCreateRequest,
+  AccountsGetRequest,
+  TransactionsGetRequest,
+} from 'plaid';
 
 // Initialize Plaid client
 const plaidClient = new PlaidApi(
   new Configuration({
-    basePath: PlaidEnvironments[process.env.PLAID_ENV as keyof typeof PlaidEnvironments] || PlaidEnvironments.sandbox,
+    basePath:
+      PlaidEnvironments[
+        process.env.PLAID_ENV as keyof typeof PlaidEnvironments
+      ] || PlaidEnvironments.sandbox,
     baseOptions: {
       headers: {
         'PLAID-CLIENT-ID': process.env.PLAID_CLIENT_ID!,

@@ -107,6 +107,11 @@ export function EnhancedDashboard() {
     setTimeout(() => setRefreshing(false), 2000);
   };
 
+  const handleAddTransaction = () => {
+    // Navigate to transactions page or open transaction form
+    window.location.href = '/transactions';
+  };
+
   if (isLoading) {
     return (
       <div className='flex items-center justify-center h-64'>
@@ -319,7 +324,11 @@ export function EnhancedDashboard() {
         </CardHeader>
         <CardContent>
           <div className='grid gap-4 md:grid-cols-4'>
-            <Button variant='outline' className='h-20 flex flex-col space-y-2'>
+            <Button
+              variant='outline'
+              className='h-20 flex flex-col space-y-2'
+              onClick={handleAddTransaction}
+            >
               <CreditCard className='h-6 w-6' />
               <span>Add Transaction</span>
             </Button>

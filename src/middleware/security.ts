@@ -24,7 +24,10 @@ export class SecurityMiddleware {
    */
   static async secureRequest(
     request: NextRequest,
-    handler: (request: NextRequest, context: SecurityContext) => Promise<NextResponse>
+    handler: (
+      request: NextRequest,
+      context: SecurityContext
+    ) => Promise<NextResponse>
   ): Promise<NextResponse> {
     try {
       // Extract security context
@@ -62,11 +65,12 @@ export class SecurityMiddleware {
   ): Promise<NextResponse> {
     try {
       const body = await request.text();
-      const signature = request.headers.get('x-signature') || 
-                      request.headers.get('stripe-signature') ||
-                      request.headers.get('x-paystack-signature') ||
-                      request.headers.get('verif-hash') ||
-                      '';
+      const signature =
+        request.headers.get('x-signature') ||
+        request.headers.get('stripe-signature') ||
+        request.headers.get('x-paystack-signature') ||
+        request.headers.get('verif-hash') ||
+        '';
 
       // Verify webhook signature
       const isValidSignature = await WebhookSecurityService.verifySignature(
@@ -81,7 +85,10 @@ export class SecurityMiddleware {
           ipAddress: this.getClientIP(request),
           userAgent: request.headers.get('user-agent') || '',
         });
-        return this.createSecurityErrorResponse('Invalid webhook signature', 401);
+        return this.createSecurityErrorResponse(
+          'Invalid webhook signature',
+          401
+        );
       }
 
       // Process webhook
@@ -94,7 +101,10 @@ export class SecurityMiddleware {
       );
 
       if (!result.success) {
-        return this.createSecurityErrorResponse('Webhook processing failed', 400);
+        return this.createSecurityErrorResponse(
+          'Webhook processing failed',
+          400
+        );
       }
 
       // Execute handler
@@ -195,12 +205,16 @@ export class SecurityMiddleware {
         return NextResponse.json(
           {
             error: 'Rate limit exceeded',
-            retryAfter: Math.ceil((rateLimit.resetTime.getTime() - Date.now()) / 1000),
+            retryAfter: Math.ceil(
+              (rateLimit.resetTime.getTime() - Date.now()) / 1000
+            ),
           },
           {
             status: 429,
             headers: {
-              'Retry-After': Math.ceil((rateLimit.resetTime.getTime() - Date.now()) / 1000).toString(),
+              'Retry-After': Math.ceil(
+                (rateLimit.resetTime.getTime() - Date.now()) / 1000
+              ).toString(),
             },
           }
         );
@@ -215,12 +229,15 @@ export class SecurityMiddleware {
 
   // Private helper methods
 
-  private static async extractSecurityContext(request: NextRequest): Promise<SecurityContext> {
+  private static async extractSecurityContext(
+    request: NextRequest
+  ): Promise<SecurityContext> {
     const ipAddress = this.getClientIP(request);
     const userAgent = request.headers.get('user-agent') || '';
     const sessionId = request.headers.get('x-session-id') || undefined;
     const userId = request.headers.get('x-user-id') || 'anonymous';
-    const requestId = request.headers.get('x-request-id') || this.generateRequestId();
+    const requestId =
+      request.headers.get('x-request-id') || this.generateRequestId();
 
     return {
       userId,
@@ -264,7 +281,10 @@ export class SecurityMiddleware {
     return { allowed: true, reason: 'Security checks passed' };
   }
 
-  private static isSuspiciousRequest(request: NextRequest, context: SecurityContext): boolean {
+  private static isSuspiciousRequest(
+    request: NextRequest,
+    context: SecurityContext
+  ): boolean {
     const url = request.url;
     const userAgent = context.userAgent;
 
@@ -311,10 +331,12 @@ export class SecurityMiddleware {
     return false;
   }
 
-  private static async containsMaliciousContent(request: NextRequest): Promise<boolean> {
+  private static async containsMaliciousContent(
+    request: NextRequest
+  ): Promise<boolean> {
     try {
       const body = await request.text();
-      
+
       // Check for common attack patterns
       const maliciousPatterns = [
         /<script[^>]*>.*?<\/script>/gi,
@@ -337,7 +359,10 @@ export class SecurityMiddleware {
     }
   }
 
-  private static async logRequest(request: NextRequest, context: SecurityContext): Promise<void> {
+  private static async logRequest(
+    request: NextRequest,
+    context: SecurityContext
+  ): Promise<void> {
     await AuditTrailService.createAuditEvent(
       context.userId,
       'api_request',
@@ -416,7 +441,10 @@ export class SecurityMiddleware {
     return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  private static createSecurityErrorResponse(message: string, status: number): NextResponse {
+  private static createSecurityErrorResponse(
+    message: string,
+    status: number
+  ): NextResponse {
     return NextResponse.json(
       {
         error: 'Security Error',

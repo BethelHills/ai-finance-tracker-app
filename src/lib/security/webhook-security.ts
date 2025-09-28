@@ -59,7 +59,10 @@ export class WebhookSecurityService {
           throw new Error(`Unsupported webhook provider: ${provider}`);
       }
     } catch (error) {
-      console.error(`Webhook signature verification failed for ${provider}:`, error);
+      console.error(
+        `Webhook signature verification failed for ${provider}:`,
+        error
+      );
       return false;
     }
   }
@@ -67,14 +70,19 @@ export class WebhookSecurityService {
   /**
    * Verify Stripe webhook signature
    */
-  private static async verifyStripeSignature(payload: string, signature: string): Promise<boolean> {
+  private static async verifyStripeSignature(
+    payload: string,
+    signature: string
+  ): Promise<boolean> {
     const webhookSecret = SecretsManager.getSecret('STRIPE_WEBHOOK_SECRET');
     if (!webhookSecret) {
       throw new Error('Stripe webhook secret not configured');
     }
 
     const elements = signature.split(',');
-    const signatureHash = elements.find(el => el.startsWith('v1='))?.split('=')[1];
+    const signatureHash = elements
+      .find(el => el.startsWith('v1='))
+      ?.split('=')[1];
     const timestamp = elements.find(el => el.startsWith('t='))?.split('=')[1];
 
     if (!signatureHash || !timestamp) {
@@ -84,7 +92,8 @@ export class WebhookSecurityService {
     // Check timestamp (prevent replay attacks)
     const currentTime = Math.floor(Date.now() / 1000);
     const webhookTime = parseInt(timestamp);
-    if (currentTime - webhookTime > 300) { // 5 minutes tolerance
+    if (currentTime - webhookTime > 300) {
+      // 5 minutes tolerance
       return false;
     }
 
@@ -104,7 +113,10 @@ export class WebhookSecurityService {
   /**
    * Verify Paystack webhook signature
    */
-  private static async verifyPaystackSignature(payload: string, signature: string): Promise<boolean> {
+  private static async verifyPaystackSignature(
+    payload: string,
+    signature: string
+  ): Promise<boolean> {
     const secretKey = SecretsManager.getSecret('PAYSTACK_SECRET_KEY');
     if (!secretKey) {
       throw new Error('Paystack secret key not configured');
@@ -124,7 +136,10 @@ export class WebhookSecurityService {
   /**
    * Verify Flutterwave webhook signature
    */
-  private static async verifyFlutterwaveSignature(payload: string, signature: string): Promise<boolean> {
+  private static async verifyFlutterwaveSignature(
+    payload: string,
+    signature: string
+  ): Promise<boolean> {
     const secretKey = SecretsManager.getSecret('FLUTTERWAVE_SECRET_KEY');
     if (!secretKey) {
       throw new Error('Flutterwave secret key not configured');
@@ -144,7 +159,10 @@ export class WebhookSecurityService {
   /**
    * Verify Plaid webhook signature
    */
-  private static async verifyPlaidSignature(payload: string, signature: string): Promise<boolean> {
+  private static async verifyPlaidSignature(
+    payload: string,
+    signature: string
+  ): Promise<boolean> {
     const webhookSecret = SecretsManager.getSecret('PLAID_WEBHOOK_SECRET');
     if (!webhookSecret) {
       throw new Error('Plaid webhook secret not configured');
@@ -188,7 +206,7 @@ export class WebhookSecurityService {
     // In a real implementation, this would check against a database or Redis
     // For now, we'll use a simple in-memory store (not suitable for production)
     const processedEvents = new Map<string, IdempotencyKey>();
-    
+
     const event = processedEvents.get(idempotencyKey);
     if (event && event.processed && event.expiresAt > new Date()) {
       return {
@@ -251,7 +269,11 @@ export class WebhookSecurityService {
       }
 
       // Generate idempotency key
-      const idempotencyKey = this.generateIdempotencyKey(provider, eventType, payload);
+      const idempotencyKey = this.generateIdempotencyKey(
+        provider,
+        eventType,
+        payload
+      );
 
       // Check idempotency
       const idempotencyCheck = await this.checkIdempotency(idempotencyKey);
@@ -264,10 +286,19 @@ export class WebhookSecurityService {
       }
 
       // Process webhook event
-      const response = await this.processWebhookEvent(provider, eventType, payload);
+      const response = await this.processWebhookEvent(
+        provider,
+        eventType,
+        payload
+      );
 
       // Mark as processed
-      await this.markEventProcessed(idempotencyKey, provider, eventType, response);
+      await this.markEventProcessed(
+        idempotencyKey,
+        provider,
+        eventType,
+        response
+      );
 
       return {
         success: true,
@@ -312,12 +343,18 @@ export class WebhookSecurityService {
   /**
    * Handle Stripe webhook events
    */
-  private static async handleStripeEvent(eventType: string, payload: any): Promise<any> {
+  private static async handleStripeEvent(
+    eventType: string,
+    payload: any
+  ): Promise<any> {
     switch (eventType) {
       case 'payment_intent.succeeded':
         return { status: 'payment_processed', transactionId: payload.id };
       case 'payment_intent.payment_failed':
-        return { status: 'payment_failed', reason: payload.last_payment_error?.message };
+        return {
+          status: 'payment_failed',
+          reason: payload.last_payment_error?.message,
+        };
       case 'customer.subscription.created':
         return { status: 'subscription_created', subscriptionId: payload.id };
       default:
@@ -328,14 +365,23 @@ export class WebhookSecurityService {
   /**
    * Handle Paystack webhook events
    */
-  private static async handlePaystackEvent(eventType: string, payload: any): Promise<any> {
+  private static async handlePaystackEvent(
+    eventType: string,
+    payload: any
+  ): Promise<any> {
     switch (eventType) {
       case 'charge.success':
-        return { status: 'payment_successful', reference: payload.data.reference };
+        return {
+          status: 'payment_successful',
+          reference: payload.data.reference,
+        };
       case 'charge.failed':
         return { status: 'payment_failed', reference: payload.data.reference };
       case 'transfer.success':
-        return { status: 'transfer_successful', reference: payload.data.reference };
+        return {
+          status: 'transfer_successful',
+          reference: payload.data.reference,
+        };
       default:
         return { status: 'event_received', type: eventType };
     }
@@ -344,12 +390,18 @@ export class WebhookSecurityService {
   /**
    * Handle Flutterwave webhook events
    */
-  private static async handleFlutterwaveEvent(eventType: string, payload: any): Promise<any> {
+  private static async handleFlutterwaveEvent(
+    eventType: string,
+    payload: any
+  ): Promise<any> {
     switch (eventType) {
       case 'charge.completed':
         return { status: 'payment_completed', transactionId: payload.data.id };
       case 'transfer.completed':
-        return { status: 'transfer_completed', reference: payload.data.reference };
+        return {
+          status: 'transfer_completed',
+          reference: payload.data.reference,
+        };
       default:
         return { status: 'event_received', type: eventType };
     }
@@ -358,7 +410,10 @@ export class WebhookSecurityService {
   /**
    * Handle Plaid webhook events
    */
-  private static async handlePlaidEvent(eventType: string, payload: any): Promise<any> {
+  private static async handlePlaidEvent(
+    eventType: string,
+    payload: any
+  ): Promise<any> {
     switch (eventType) {
       case 'TRANSACTIONS':
         return { status: 'transactions_updated', itemId: payload.item_id };

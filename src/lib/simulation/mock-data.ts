@@ -49,25 +49,67 @@ export interface MockRecipient {
 }
 
 export class MockDataGenerator {
-  private static readonly CURRENCIES = ['USD', 'EUR', 'GBP', 'NGN', 'CAD', 'AUD'];
-  private static readonly COUNTRIES = ['US', 'UK', 'Nigeria', 'Canada', 'Australia', 'Germany'];
+  private static readonly CURRENCIES = [
+    'USD',
+    'EUR',
+    'GBP',
+    'NGN',
+    'CAD',
+    'AUD',
+  ];
+  private static readonly COUNTRIES = [
+    'US',
+    'UK',
+    'Nigeria',
+    'Canada',
+    'Australia',
+    'Germany',
+  ];
   private static readonly CATEGORIES = [
-    'Food & Dining', 'Transportation', 'Shopping', 'Entertainment', 'Bills & Utilities',
-    'Healthcare', 'Travel', 'Education', 'Business', 'Investment', 'Salary', 'Freelance'
+    'Food & Dining',
+    'Transportation',
+    'Shopping',
+    'Entertainment',
+    'Bills & Utilities',
+    'Healthcare',
+    'Travel',
+    'Education',
+    'Business',
+    'Investment',
+    'Salary',
+    'Freelance',
   ];
   private static readonly BANKS = [
-    'Chase Bank', 'Bank of America', 'Wells Fargo', 'First Bank', 'Access Bank',
-    'HSBC', 'Barclays', 'Deutsche Bank', 'TD Bank', 'RBC'
+    'Chase Bank',
+    'Bank of America',
+    'Wells Fargo',
+    'First Bank',
+    'Access Bank',
+    'HSBC',
+    'Barclays',
+    'Deutsche Bank',
+    'TD Bank',
+    'RBC',
   ];
 
   static generateUser(): MockUser {
     const names = [
-      'Alex Johnson', 'Sarah Chen', 'Michael Rodriguez', 'Emma Thompson',
-      'David Kim', 'Lisa Anderson', 'James Wilson', 'Maria Garcia'
+      'Alex Johnson',
+      'Sarah Chen',
+      'Michael Rodriguez',
+      'Emma Thompson',
+      'David Kim',
+      'Lisa Anderson',
+      'James Wilson',
+      'Maria Garcia',
     ];
     const countries = this.COUNTRIES;
     const currencies = this.CURRENCIES;
-    const tiers: ('basic' | 'premium' | 'enterprise')[] = ['basic', 'premium', 'enterprise'];
+    const tiers: ('basic' | 'premium' | 'enterprise')[] = [
+      'basic',
+      'premium',
+      'enterprise',
+    ];
 
     const name = names[Math.floor(Math.random() * names.length)];
     const country = countries[Math.floor(Math.random() * countries.length)];
@@ -82,20 +124,32 @@ export class MockDataGenerator {
       tier,
       country,
       currency,
-      joinedAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
+      joinedAt: new Date(
+        Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000
+      ),
     };
   }
 
   static generateAccounts(userId: string, count: number = 3): MockAccount[] {
     const accounts: MockAccount[] = [];
-    const types: ('checking' | 'savings' | 'credit' | 'investment')[] = ['checking', 'savings', 'credit', 'investment'];
-    const providers: ('plaid' | 'manual' | 'stripe')[] = ['plaid', 'manual', 'stripe'];
+    const types: ('checking' | 'savings' | 'credit' | 'investment')[] = [
+      'checking',
+      'savings',
+      'credit',
+      'investment',
+    ];
+    const providers: ('plaid' | 'manual' | 'stripe')[] = [
+      'plaid',
+      'manual',
+      'stripe',
+    ];
 
     for (let i = 0; i < count; i++) {
       const type = types[Math.floor(Math.random() * types.length)];
       const provider = providers[Math.floor(Math.random() * providers.length)];
-      const currency = this.CURRENCIES[Math.floor(Math.random() * this.CURRENCIES.length)];
-      
+      const currency =
+        this.CURRENCIES[Math.floor(Math.random() * this.CURRENCIES.length)];
+
       // Generate realistic balance based on account type
       let balance = 0;
       switch (type) {
@@ -120,7 +174,9 @@ export class MockDataGenerator {
         balance: Math.round(balance * 100) / 100,
         currency,
         provider,
-        lastUpdated: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
+        lastUpdated: new Date(
+          Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000
+        ),
         isActive: true,
       });
     }
@@ -128,25 +184,61 @@ export class MockDataGenerator {
     return accounts;
   }
 
-  static generateTransactions(accountIds: string[], count: number = 50): MockTransaction[] {
+  static generateTransactions(
+    accountIds: string[],
+    count: number = 50
+  ): MockTransaction[] {
     const transactions: MockTransaction[] = [];
-    const types: ('income' | 'expense' | 'transfer')[] = ['income', 'expense', 'transfer'];
-    const statuses: ('completed' | 'pending' | 'failed')[] = ['completed', 'completed', 'completed', 'pending', 'failed'];
-    const providers: ('plaid' | 'paystack' | 'stripe' | 'manual')[] = ['plaid', 'paystack', 'stripe', 'manual'];
+    const types: ('income' | 'expense' | 'transfer')[] = [
+      'income',
+      'expense',
+      'transfer',
+    ];
+    const statuses: ('completed' | 'pending' | 'failed')[] = [
+      'completed',
+      'completed',
+      'completed',
+      'pending',
+      'failed',
+    ];
+    const providers: ('plaid' | 'paystack' | 'stripe' | 'manual')[] = [
+      'plaid',
+      'paystack',
+      'stripe',
+      'manual',
+    ];
 
     const descriptions = [
-      'Coffee Shop Purchase', 'Salary Deposit', 'Grocery Store', 'Gas Station',
-      'Online Shopping', 'Restaurant Bill', 'ATM Withdrawal', 'Bank Transfer',
-      'Investment Return', 'Freelance Payment', 'Subscription Fee', 'Insurance Payment',
-      'Phone Bill', 'Electricity Bill', 'Rent Payment', 'Car Payment',
-      'Medical Expense', 'Travel Booking', 'Entertainment', 'Education Fee'
+      'Coffee Shop Purchase',
+      'Salary Deposit',
+      'Grocery Store',
+      'Gas Station',
+      'Online Shopping',
+      'Restaurant Bill',
+      'ATM Withdrawal',
+      'Bank Transfer',
+      'Investment Return',
+      'Freelance Payment',
+      'Subscription Fee',
+      'Insurance Payment',
+      'Phone Bill',
+      'Electricity Bill',
+      'Rent Payment',
+      'Car Payment',
+      'Medical Expense',
+      'Travel Booking',
+      'Entertainment',
+      'Education Fee',
     ];
 
     for (let i = 0; i < count; i++) {
-      const accountId = accountIds[Math.floor(Math.random() * accountIds.length)];
+      const accountId =
+        accountIds[Math.floor(Math.random() * accountIds.length)];
       const type = types[Math.floor(Math.random() * types.length)];
-      const category = this.CATEGORIES[Math.floor(Math.random() * this.CATEGORIES.length)];
-      const description = descriptions[Math.floor(Math.random() * descriptions.length)];
+      const category =
+        this.CATEGORIES[Math.floor(Math.random() * this.CATEGORIES.length)];
+      const description =
+        descriptions[Math.floor(Math.random() * descriptions.length)];
       const status = statuses[Math.floor(Math.random() * statuses.length)];
       const provider = providers[Math.floor(Math.random() * providers.length)];
 
@@ -163,11 +255,16 @@ export class MockDataGenerator {
       // Adjust amount based on category
       if (category === 'Salary' || category === 'Investment') {
         amount = Math.abs(amount) * 10;
-      } else if (category === 'Coffee Shop Purchase' || category === 'Gas Station') {
+      } else if (
+        category === 'Coffee Shop Purchase' ||
+        category === 'Gas Station'
+      ) {
         amount = Math.abs(amount) * 0.1;
       }
 
-      const date = new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000);
+      const date = new Date(
+        Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000
+      );
 
       transactions.push({
         id: `txn_${Math.random().toString(36).substr(2, 9)}`,
@@ -193,15 +290,26 @@ export class MockDataGenerator {
   static generateRecipients(count: number = 10): MockRecipient[] {
     const recipients: MockRecipient[] = [];
     const names = [
-      'John Smith', 'Sarah Johnson', 'Michael Brown', 'Emily Davis',
-      'David Wilson', 'Lisa Miller', 'James Garcia', 'Maria Martinez',
-      'Robert Anderson', 'Jennifer Taylor', 'William Thomas', 'Linda Jackson'
+      'John Smith',
+      'Sarah Johnson',
+      'Michael Brown',
+      'Emily Davis',
+      'David Wilson',
+      'Lisa Miller',
+      'James Garcia',
+      'Maria Martinez',
+      'Robert Anderson',
+      'Jennifer Taylor',
+      'William Thomas',
+      'Linda Jackson',
     ];
 
     for (let i = 0; i < count; i++) {
       const name = names[Math.floor(Math.random() * names.length)];
-      const country = this.COUNTRIES[Math.floor(Math.random() * this.COUNTRIES.length)];
-      const bankName = this.BANKS[Math.floor(Math.random() * this.BANKS.length)];
+      const country =
+        this.COUNTRIES[Math.floor(Math.random() * this.COUNTRIES.length)];
+      const bankName =
+        this.BANKS[Math.floor(Math.random() * this.BANKS.length)];
 
       recipients.push({
         id: `recipient_${Math.random().toString(36).substr(2, 9)}`,
@@ -210,7 +318,9 @@ export class MockDataGenerator {
         accountNumber: Math.random().toString().substr(2, 10),
         bankName,
         country,
-        lastUsed: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+        lastUsed: new Date(
+          Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000
+        ),
       });
     }
 
@@ -219,17 +329,21 @@ export class MockDataGenerator {
 
   static generateInsights(transactions: MockTransaction[]): any[] {
     const insights = [];
-    
+
     // Spending by category
     const categorySpending = transactions
       .filter(t => t.type === 'expense')
-      .reduce((acc, t) => {
-        acc[t.category] = (acc[t.category] || 0) + Math.abs(t.amount);
-        return acc;
-      }, {} as Record<string, number>);
+      .reduce(
+        (acc, t) => {
+          acc[t.category] = (acc[t.category] || 0) + Math.abs(t.amount);
+          return acc;
+        },
+        {} as Record<string, number>
+      );
 
-    const topCategory = Object.entries(categorySpending)
-      .sort(([,a], [,b]) => b - a)[0];
+    const topCategory = Object.entries(categorySpending).sort(
+      ([, a], [, b]) => b - a
+    )[0];
 
     if (topCategory) {
       insights.push({
@@ -245,13 +359,21 @@ export class MockDataGenerator {
     }
 
     // Unusual spending
-    const avgDailySpending = transactions
-      .filter(t => t.type === 'expense' && t.date > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
-      .reduce((sum, t) => sum + Math.abs(t.amount), 0) / 30;
+    const avgDailySpending =
+      transactions
+        .filter(
+          t =>
+            t.type === 'expense' &&
+            t.date > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+        )
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0) / 30;
 
     const todaySpending = transactions
-      .filter(t => t.type === 'expense' && 
-        t.date.toDateString() === new Date().toDateString())
+      .filter(
+        t =>
+          t.type === 'expense' &&
+          t.date.toDateString() === new Date().toDateString()
+      )
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
     if (todaySpending > avgDailySpending * 2) {
@@ -272,7 +394,8 @@ export class MockDataGenerator {
       id: `insight_${Math.random().toString(36).substr(2, 9)}`,
       type: 'budget_alert',
       title: 'Budget Alert',
-      description: 'You\'re approaching your monthly budget limit for Entertainment',
+      description:
+        "You're approaching your monthly budget limit for Entertainment",
       priority: 'low',
       confidence: 0.75,
       actionable: true,
@@ -284,18 +407,42 @@ export class MockDataGenerator {
 
   private static generateMerchantName(): string {
     const merchants = [
-      'Starbucks', 'McDonald\'s', 'Amazon', 'Target', 'Walmart',
-      'Uber', 'Lyft', 'Netflix', 'Spotify', 'Apple Store',
-      'Shell', 'BP', 'Exxon', 'Chevron', 'Whole Foods'
+      'Starbucks',
+      "McDonald's",
+      'Amazon',
+      'Target',
+      'Walmart',
+      'Uber',
+      'Lyft',
+      'Netflix',
+      'Spotify',
+      'Apple Store',
+      'Shell',
+      'BP',
+      'Exxon',
+      'Chevron',
+      'Whole Foods',
     ];
     return merchants[Math.floor(Math.random() * merchants.length)];
   }
 
   private static generateLocation(): string {
     const cities = [
-      'New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix',
-      'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose',
-      'Lagos', 'London', 'Toronto', 'Sydney', 'Berlin'
+      'New York',
+      'Los Angeles',
+      'Chicago',
+      'Houston',
+      'Phoenix',
+      'Philadelphia',
+      'San Antonio',
+      'San Diego',
+      'Dallas',
+      'San Jose',
+      'Lagos',
+      'London',
+      'Toronto',
+      'Sydney',
+      'Berlin',
     ];
     return cities[Math.floor(Math.random() * cities.length)];
   }
@@ -303,17 +450,17 @@ export class MockDataGenerator {
   private static generateTags(category: string): string[] {
     const tagMap: Record<string, string[]> = {
       'Food & Dining': ['restaurant', 'food', 'dining'],
-      'Transportation': ['transport', 'travel', 'commute'],
-      'Shopping': ['retail', 'purchase', 'shopping'],
-      'Entertainment': ['entertainment', 'leisure', 'fun'],
+      Transportation: ['transport', 'travel', 'commute'],
+      Shopping: ['retail', 'purchase', 'shopping'],
+      Entertainment: ['entertainment', 'leisure', 'fun'],
       'Bills & Utilities': ['bills', 'utilities', 'monthly'],
-      'Healthcare': ['health', 'medical', 'wellness'],
-      'Travel': ['travel', 'vacation', 'trip'],
-      'Education': ['education', 'learning', 'school'],
-      'Business': ['business', 'work', 'professional'],
-      'Investment': ['investment', 'savings', 'financial'],
-      'Salary': ['income', 'salary', 'work'],
-      'Freelance': ['freelance', 'contract', 'gig'],
+      Healthcare: ['health', 'medical', 'wellness'],
+      Travel: ['travel', 'vacation', 'trip'],
+      Education: ['education', 'learning', 'school'],
+      Business: ['business', 'work', 'professional'],
+      Investment: ['investment', 'savings', 'financial'],
+      Salary: ['income', 'salary', 'work'],
+      Freelance: ['freelance', 'contract', 'gig'],
     };
     return tagMap[category] || ['general'];
   }
@@ -336,14 +483,19 @@ export class MockDataGenerator {
     };
   }
 
-  private static calculateStats(transactions: MockTransaction[], accounts: MockAccount[]) {
+  private static calculateStats(
+    transactions: MockTransaction[],
+    accounts: MockAccount[]
+  ) {
     const totalIncome = transactions
       .filter(t => t.type === 'income' && t.status === 'completed')
       .reduce((sum, t) => sum + t.amount, 0);
 
-    const totalExpenses = Math.abs(transactions
-      .filter(t => t.type === 'expense' && t.status === 'completed')
-      .reduce((sum, t) => sum + t.amount, 0));
+    const totalExpenses = Math.abs(
+      transactions
+        .filter(t => t.type === 'expense' && t.status === 'completed')
+        .reduce((sum, t) => sum + t.amount, 0)
+    );
 
     const netWorth = accounts.reduce((sum, a) => sum + a.balance, 0);
 

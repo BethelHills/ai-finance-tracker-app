@@ -62,9 +62,7 @@ export class AccessControlService {
       id: 'system_admin',
       name: 'System Administrator',
       description: 'Full system access for administrative tasks',
-      permissions: [
-        { resource: '*', action: '*' },
-      ],
+      permissions: [{ resource: '*', action: '*' }],
       level: 'system',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -115,11 +113,31 @@ export class AccessControlService {
       name: 'Regular User',
       description: 'Standard user access to own data',
       permissions: [
-        { resource: 'transactions', action: 'read', conditions: { userId: 'self' } },
-        { resource: 'transactions', action: 'create', conditions: { userId: 'self' } },
-        { resource: 'transactions', action: 'update', conditions: { userId: 'self' } },
-        { resource: 'accounts', action: 'read', conditions: { userId: 'self' } },
-        { resource: 'accounts', action: 'create', conditions: { userId: 'self' } },
+        {
+          resource: 'transactions',
+          action: 'read',
+          conditions: { userId: 'self' },
+        },
+        {
+          resource: 'transactions',
+          action: 'create',
+          conditions: { userId: 'self' },
+        },
+        {
+          resource: 'transactions',
+          action: 'update',
+          conditions: { userId: 'self' },
+        },
+        {
+          resource: 'accounts',
+          action: 'read',
+          conditions: { userId: 'self' },
+        },
+        {
+          resource: 'accounts',
+          action: 'create',
+          conditions: { userId: 'self' },
+        },
         { resource: 'reports', action: 'read', conditions: { userId: 'self' } },
       ],
       level: 'read',
@@ -133,8 +151,16 @@ export class AccessControlService {
       name: 'Read-Only User',
       description: 'Read-only access to own data',
       permissions: [
-        { resource: 'transactions', action: 'read', conditions: { userId: 'self' } },
-        { resource: 'accounts', action: 'read', conditions: { userId: 'self' } },
+        {
+          resource: 'transactions',
+          action: 'read',
+          conditions: { userId: 'self' },
+        },
+        {
+          resource: 'accounts',
+          action: 'read',
+          conditions: { userId: 'self' },
+        },
         { resource: 'reports', action: 'read', conditions: { userId: 'self' } },
       ],
       level: 'read',
@@ -153,11 +179,16 @@ export class AccessControlService {
     context: Record<string, any> = {}
   ): Promise<AccessDecision> {
     const userRoles = this.getUserRoles(userId);
-    const permissions = this.getUserPermissions(userId, userRoles);
-    
+    const permissions = this.getUserPermissionsFromRoles(userId, userRoles);
+
     // Check for explicit permission
-    const hasPermission = this.hasExplicitPermission(permissions, resource, action, context);
-    
+    const hasPermission = this.hasExplicitPermission(
+      permissions,
+      resource,
+      action,
+      context
+    );
+
     if (hasPermission) {
       return {
         allowed: true,
@@ -170,8 +201,12 @@ export class AccessControlService {
     }
 
     // Check for wildcard permissions
-    const hasWildcardPermission = this.hasWildcardPermission(permissions, resource, action);
-    
+    const hasWildcardPermission = this.hasWildcardPermission(
+      permissions,
+      resource,
+      action
+    );
+
     if (hasWildcardPermission) {
       return {
         allowed: true,
@@ -185,7 +220,7 @@ export class AccessControlService {
 
     // Check for admin permissions
     const hasAdminPermission = this.hasAdminPermission(userRoles);
-    
+
     if (hasAdminPermission) {
       return {
         allowed: true,
@@ -277,7 +312,7 @@ export class AccessControlService {
    */
   static getUserPermissions(userId: string): Permission[] {
     const userRoles = this.getUserRoles(userId);
-    return this.getUserPermissions(userId, userRoles);
+    return this.getUserPermissionsFromRoles(userId, userRoles);
   }
 
   /**
@@ -356,7 +391,7 @@ export class AccessControlService {
   }> {
     const totalRoles = this.roles.size;
     const totalUsers = this.userRoles.size;
-    
+
     let activeRoles = 0;
     let inactiveRoles = 0;
     let highPrivilegeUsers = 0;
@@ -365,7 +400,7 @@ export class AccessControlService {
       for (const userRole of userRoles) {
         if (userRole.isActive) {
           activeRoles++;
-          
+
           const role = this.roles.get(userRole.roleId);
           if (role && (role.level === 'admin' || role.level === 'system')) {
             highPrivilegeUsers++;
@@ -394,12 +429,15 @@ export class AccessControlService {
     return this.userRoles.get(userId) || [];
   }
 
-  private static getUserPermissions(userId: string, userRoles: UserRole[]): Permission[] {
+  private static getUserPermissionsFromRoles(
+    userId: string,
+    userRoles: UserRole[]
+  ): Permission[] {
     const permissions: Permission[] = [];
 
     for (const userRole of userRoles) {
       if (!userRole.isActive) continue;
-      
+
       if (userRole.expiresAt && userRole.expiresAt < new Date()) continue;
 
       const role = this.roles.get(userRole.roleId);
@@ -432,7 +470,7 @@ export class AccessControlService {
           if (value === 'self' && context.userId !== context.currentUserId) {
             return false;
           }
-          
+
           if (value !== 'self' && context[key] !== value) {
             return false;
           }
@@ -448,15 +486,15 @@ export class AccessControlService {
     resource: string,
     action: string
   ): boolean {
-    return permissions.some(permission => 
-      permission.resource === '*' && permission.action === '*'
+    return permissions.some(
+      permission => permission.resource === '*' && permission.action === '*'
     );
   }
 
   private static hasAdminPermission(userRoles: UserRole[]): boolean {
     return userRoles.some(userRole => {
       if (!userRole.isActive) return false;
-      
+
       const role = this.roles.get(userRole.roleId);
       return role && (role.level === 'admin' || role.level === 'system');
     });
@@ -484,18 +522,22 @@ export class AccessControlService {
     // Check for users with too many roles
     for (const [userId, userRoles] of this.userRoles.entries()) {
       if (userRoles.length > 3) {
-        recommendations.push(`User ${userId} has ${userRoles.length} roles - consider consolidating`);
+        recommendations.push(
+          `User ${userId} has ${userRoles.length} roles - consider consolidating`
+        );
       }
     }
 
     // Check for expired roles
     for (const [userId, userRoles] of this.userRoles.entries()) {
-      const expiredRoles = userRoles.filter(ur => 
-        ur.expiresAt && ur.expiresAt < new Date() && ur.isActive
+      const expiredRoles = userRoles.filter(
+        ur => ur.expiresAt && ur.expiresAt < new Date() && ur.isActive
       );
-      
+
       if (expiredRoles.length > 0) {
-        recommendations.push(`User ${userId} has ${expiredRoles.length} expired roles that should be deactivated`);
+        recommendations.push(
+          `User ${userId} has ${expiredRoles.length} expired roles that should be deactivated`
+        );
       }
     }
 
@@ -513,7 +555,9 @@ export class AccessControlService {
     }
 
     if (highPrivilegeCount > 5) {
-      recommendations.push(`High number of high-privilege users (${highPrivilegeCount}) - review necessity`);
+      recommendations.push(
+        `High number of high-privilege users (${highPrivilegeCount}) - review necessity`
+      );
     }
 
     return recommendations;

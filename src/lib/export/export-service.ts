@@ -1,4 +1,4 @@
-import { Transaction } from '@/types/transaction';
+import { Transaction } from '@prisma/client';
 import { AIService } from '@/lib/ai-service';
 
 /**
@@ -44,23 +44,25 @@ export class ExportService {
         'Reference',
         'Status',
         'Reconciliation Status',
-        'Notes'
+        'Notes',
       ];
 
       const csvRows = [
         headers.join(','),
-        ...transactions.map(tx => [
-          tx.date.toISOString().split('T')[0],
-          `"${tx.description.replace(/"/g, '""')}"`,
-          tx.amount.toString(),
-          tx.type,
-          tx.category || '',
-          tx.account || '',
-          tx.reference || '',
-          tx.status || '',
-          tx.reconciliationStatus || '',
-          `"${(tx.notes || '').replace(/"/g, '""')}"`
-        ].join(','))
+        ...transactions.map(tx =>
+          [
+            new Date(tx.date).toISOString().split('T')[0],
+            `"${tx.description.replace(/"/g, '""')}"`,
+            tx.amount.toString(),
+            tx.type,
+            tx.categoryId || '',
+            tx.accountId || '',
+            '', // reference not available
+            '', // status not available
+            '', // reconciliationStatus not available
+            '', // notes not available
+          ].join(',')
+        ),
       ];
 
       const csvContent = csvRows.join('\n');
@@ -70,14 +72,14 @@ export class ExportService {
         success: true,
         data: csvContent,
         filename,
-        mimeType: 'text/csv'
+        mimeType: 'text/csv',
       };
     } catch (error) {
       return {
         success: false,
         filename: '',
         mimeType: '',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -93,21 +95,21 @@ export class ExportService {
       // In a real implementation, you would use a PDF library like jsPDF or PDFKit
       // For now, we'll create a simple HTML-based PDF
       const htmlContent = this.generatePDFHTML(transactions, options);
-      
+
       const filename = `transactions_${this.formatDate(options.dateRange.start)}_to_${this.formatDate(options.dateRange.end)}.pdf`;
 
       return {
         success: true,
         data: htmlContent,
         filename,
-        mimeType: 'application/pdf'
+        mimeType: 'application/pdf',
       };
     } catch (error) {
       return {
         success: false,
         filename: '',
         mimeType: '',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -121,22 +123,29 @@ export class ExportService {
   ): Promise<ExportResult> {
     try {
       // Generate AI summary using the AI service
-      const summary = await AIService.generateMonthlySummary(transactions, options.dateRange);
-      
+      const summary = await AIService.analyzeSpendingPatterns(
+        transactions.map(tx => ({
+          amount: Number(tx.amount),
+          description: tx.description,
+          category: tx.categoryId || 'Unknown',
+          date: tx.date.toISOString(),
+        }))
+      );
+
       const filename = `monthly_summary_${this.formatDate(options.dateRange.start)}_to_${this.formatDate(options.dateRange.end)}.md`;
 
       return {
         success: true,
-        data: summary,
+        data: JSON.stringify(summary, null, 2),
         filename,
-        mimeType: 'text/markdown'
+        mimeType: 'text/markdown',
       };
     } catch (error) {
       return {
         success: false,
         filename: '',
         mimeType: '',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -150,21 +159,21 @@ export class ExportService {
   ): Promise<ExportResult> {
     try {
       const report = await this.generateFinancialReport(transactions, options);
-      
+
       const filename = `financial_report_${this.formatDate(options.dateRange.start)}_to_${this.formatDate(options.dateRange.end)}.html`;
 
       return {
         success: true,
         data: report,
         filename,
-        mimeType: 'text/html'
+        mimeType: 'text/html',
       };
     } catch (error) {
       return {
         success: false,
         filename: '',
         mimeType: '',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -172,14 +181,17 @@ export class ExportService {
   /**
    * Generate PDF HTML content
    */
-  private static generatePDFHTML(transactions: Transaction[], options: ExportOptions): string {
+  private static generatePDFHTML(
+    transactions: Transaction[],
+    options: ExportOptions
+  ): string {
     const totalIncome = transactions
-      .filter(tx => tx.type === 'income')
-      .reduce((sum, tx) => sum + tx.amount, 0);
+      .filter(tx => tx.type === 'INCOME')
+      .reduce((sum, tx) => sum + Number(tx.amount), 0);
 
     const totalExpenses = transactions
-      .filter(tx => tx.type === 'expense')
-      .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+      .filter(tx => tx.type === 'EXPENSE')
+      .reduce((sum, tx) => sum + Math.abs(Number(tx.amount)), 0);
 
     const netAmount = totalIncome - totalExpenses;
 
@@ -244,18 +256,22 @@ export class ExportService {
             </tr>
           </thead>
           <tbody>
-            ${transactions.map(tx => `
+            ${transactions
+              .map(
+                tx => `
               <tr>
                 <td>${tx.date.toISOString().split('T')[0]}</td>
                 <td>${tx.description}</td>
-                <td class="amount ${tx.amount >= 0 ? 'positive' : 'negative'}">
-                  $${Math.abs(tx.amount).toLocaleString()}
+                <td class="amount ${Number(tx.amount) >= 0 ? 'positive' : 'negative'}">
+                  $${Math.abs(Number(tx.amount)).toLocaleString()}
                 </td>
                 <td>${tx.type}</td>
-                <td>${tx.category || 'N/A'}</td>
-                <td>${tx.status || 'N/A'}</td>
+                <td>${tx.categoryId || 'N/A'}</td>
+                <td>N/A</td>
               </tr>
-            `).join('')}
+            `
+              )
+              .join('')}
           </tbody>
         </table>
       </body>
@@ -272,7 +288,10 @@ export class ExportService {
   ): Promise<string> {
     const stats = this.calculateTransactionStats(transactions);
     const categoryBreakdown = this.calculateCategoryBreakdown(transactions);
-    const monthlyTrends = this.calculateMonthlyTrends(transactions, options.dateRange);
+    const monthlyTrends = this.calculateMonthlyTrends(
+      transactions,
+      options.dateRange
+    );
 
     return `
       <!DOCTYPE html>
@@ -333,12 +352,16 @@ export class ExportService {
 
         <div class="category-list">
           <h3>Top Categories</h3>
-          ${categoryBreakdown.map(cat => `
+          ${categoryBreakdown
+            .map(
+              cat => `
             <div class="category-item">
               <span>${cat.category}</span>
               <span>$${cat.amount.toLocaleString()}</span>
             </div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
 
         <script>
@@ -404,18 +427,18 @@ export class ExportService {
    */
   private static calculateTransactionStats(transactions: Transaction[]) {
     const totalIncome = transactions
-      .filter(tx => tx.type === 'income')
-      .reduce((sum, tx) => sum + tx.amount, 0);
+      .filter(tx => tx.type === 'INCOME')
+      .reduce((sum, tx) => sum + Number(tx.amount), 0);
 
     const totalExpenses = transactions
-      .filter(tx => tx.type === 'expense')
-      .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+      .filter(tx => tx.type === 'EXPENSE')
+      .reduce((sum, tx) => sum + Math.abs(Number(tx.amount)), 0);
 
     return {
       totalIncome,
       totalExpenses,
       netAmount: totalIncome - totalExpenses,
-      transactionCount: transactions.length
+      transactionCount: transactions.length,
     };
   }
 
@@ -426,9 +449,9 @@ export class ExportService {
     const categoryMap = new Map<string, number>();
 
     transactions.forEach(tx => {
-      if (tx.category) {
-        const current = categoryMap.get(tx.category) || 0;
-        categoryMap.set(tx.category, current + Math.abs(tx.amount));
+      if (tx.categoryId) {
+        const current = categoryMap.get(tx.categoryId) || 0;
+        categoryMap.set(tx.categoryId, current + Math.abs(Number(tx.amount)));
       }
     });
 
@@ -454,10 +477,10 @@ export class ExportService {
       }
 
       const data = monthlyData.get(month)!;
-      if (tx.type === 'income') {
-        data.income += tx.amount;
-      } else if (tx.type === 'expense') {
-        data.expenses += Math.abs(tx.amount);
+      if (tx.type === 'INCOME') {
+        data.income += Number(tx.amount);
+      } else if (tx.type === 'EXPENSE') {
+        data.expenses += Math.abs(Number(tx.amount));
       }
     });
 

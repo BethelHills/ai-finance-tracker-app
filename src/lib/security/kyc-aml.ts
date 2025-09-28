@@ -6,7 +6,12 @@ import { SecretsManager } from './secrets-manager';
  */
 
 export interface KYCDocument {
-  type: 'passport' | 'drivers_license' | 'national_id' | 'utility_bill' | 'bank_statement';
+  type:
+    | 'passport'
+    | 'drivers_license'
+    | 'national_id'
+    | 'utility_bill'
+    | 'bank_statement';
   number: string;
   country: string;
   issuedDate: Date;
@@ -87,7 +92,11 @@ export class KYCAMLService {
     };
 
     // Log KYC initialization
-    await this.logKYCEvent(userId, 'profile_initialized', 'KYC profile created');
+    await this.logKYCEvent(
+      userId,
+      'profile_initialized',
+      'KYC profile created'
+    );
 
     return profile;
   }
@@ -107,14 +116,24 @@ export class KYCAMLService {
     // Validate documents
     const validation = await this.validateKYCDocuments(documents);
     if (!validation.valid) {
-      throw new Error(`Document validation failed: ${validation.errors.join(', ')}`);
+      throw new Error(
+        `Document validation failed: ${validation.errors.join(', ')}`
+      );
     }
 
     // Submit to verification provider
-    const verificationId = await this.submitToVerificationProvider(userId, documents, personalInfo);
+    const verificationId = await this.submitToVerificationProvider(
+      userId,
+      documents,
+      personalInfo
+    );
 
     // Log document submission
-    await this.logKYCEvent(userId, 'documents_submitted', `Documents submitted for verification: ${verificationId}`);
+    await this.logKYCEvent(
+      userId,
+      'documents_submitted',
+      `Documents submitted for verification: ${verificationId}`
+    );
 
     return {
       success: true,
@@ -126,7 +145,10 @@ export class KYCAMLService {
   /**
    * Perform AML screening
    */
-  static async performAMLScreening(userId: string, personalInfo: KYCProfile['personalInfo']): Promise<AMLCheck[]> {
+  static async performAMLScreening(
+    userId: string,
+    personalInfo: KYCProfile['personalInfo']
+  ): Promise<AMLCheck[]> {
     const checks: AMLCheck[] = [];
 
     // Sanctions screening
@@ -146,7 +168,11 @@ export class KYCAMLService {
     checks.push(watchlistCheck);
 
     // Log AML screening
-    await this.logKYCEvent(userId, 'aml_screening', `AML screening completed with ${checks.length} checks`);
+    await this.logKYCEvent(
+      userId,
+      'aml_screening',
+      `AML screening completed with ${checks.length} checks`
+    );
 
     return checks;
   }
@@ -218,7 +244,11 @@ export class KYCAMLService {
     };
 
     // Log risk assessment
-    await this.logKYCEvent(userId, 'risk_assessment', `Transaction risk assessed: ${riskScore} (${recommendation})`);
+    await this.logKYCEvent(
+      userId,
+      'risk_assessment',
+      `Transaction risk assessed: ${riskScore} (${recommendation})`
+    );
 
     return assessment;
   }
@@ -272,7 +302,7 @@ export class KYCAMLService {
     const riskAssessment = await this.getLatestRiskAssessment(userId);
 
     const recommendations: string[] = [];
-    
+
     if (profile.status !== 'verified') {
       recommendations.push('Complete KYC verification');
     }
@@ -333,7 +363,9 @@ export class KYCAMLService {
     return `verification_${Date.now()}_${userId}`;
   }
 
-  private static async checkSanctionsList(personalInfo: KYCProfile['personalInfo']): Promise<AMLCheck> {
+  private static async checkSanctionsList(
+    personalInfo: KYCProfile['personalInfo']
+  ): Promise<AMLCheck> {
     // Mock implementation - would check against OFAC, UN, EU sanctions lists
     return {
       userId: '',
@@ -346,7 +378,9 @@ export class KYCAMLService {
     };
   }
 
-  private static async checkPEPList(personalInfo: KYCProfile['personalInfo']): Promise<AMLCheck> {
+  private static async checkPEPList(
+    personalInfo: KYCProfile['personalInfo']
+  ): Promise<AMLCheck> {
     // Mock implementation - would check against PEP databases
     return {
       userId: '',
@@ -359,7 +393,9 @@ export class KYCAMLService {
     };
   }
 
-  private static async checkAdverseMedia(personalInfo: KYCProfile['personalInfo']): Promise<AMLCheck> {
+  private static async checkAdverseMedia(
+    personalInfo: KYCProfile['personalInfo']
+  ): Promise<AMLCheck> {
     // Mock implementation - would check news and media sources
     return {
       userId: '',
@@ -372,7 +408,9 @@ export class KYCAMLService {
     };
   }
 
-  private static async checkWatchlist(personalInfo: KYCProfile['personalInfo']): Promise<AMLCheck> {
+  private static async checkWatchlist(
+    personalInfo: KYCProfile['personalInfo']
+  ): Promise<AMLCheck> {
     // Mock implementation - would check various watchlists
     return {
       userId: '',
@@ -437,7 +475,9 @@ export class KYCAMLService {
     };
   }
 
-  private static async detectUnusualPatterns(userId: string): Promise<string[]> {
+  private static async detectUnusualPatterns(
+    userId: string
+  ): Promise<string[]> {
     // Mock implementation
     return [];
   }
@@ -447,7 +487,9 @@ export class KYCAMLService {
     return [];
   }
 
-  private static async getLatestRiskAssessment(userId: string): Promise<TransactionRiskAssessment | null> {
+  private static async getLatestRiskAssessment(
+    userId: string
+  ): Promise<TransactionRiskAssessment | null> {
     // Mock implementation
     return null;
   }
@@ -458,19 +500,26 @@ export class KYCAMLService {
     return 'high';
   }
 
-  private static calculateComplianceScore(profile: KYCProfile, amlChecks: AMLCheck[]): number {
+  private static calculateComplianceScore(
+    profile: KYCProfile,
+    amlChecks: AMLCheck[]
+  ): number {
     let score = 100;
 
     if (profile.status !== 'verified') score -= 30;
     if (profile.riskScore > 50) score -= 20;
-    
+
     const hitChecks = amlChecks.filter(check => check.status === 'hit');
     score -= hitChecks.length * 10;
 
     return Math.max(0, score);
   }
 
-  private static async logKYCEvent(userId: string, event: string, details: string): Promise<void> {
+  private static async logKYCEvent(
+    userId: string,
+    event: string,
+    details: string
+  ): Promise<void> {
     console.log(`[KYC/AML] ${event}: ${userId} - ${details}`);
   }
 }

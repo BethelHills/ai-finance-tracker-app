@@ -16,16 +16,14 @@ This guide provides practical examples and templates for integrating with extern
 ### React Component Example
 
 ```tsx
-import { PlaidLinkComponent, usePlaidLinkManager } from '@/components/plaid/plaid-link-component';
+import {
+  PlaidLinkComponent,
+  usePlaidLinkManager,
+} from '@/components/plaid/plaid-link-component';
 
 function BankLinkingPage() {
-  const { 
-    linkToken, 
-    isLoading, 
-    error, 
-    createLinkToken, 
-    exchangePublicToken 
-  } = usePlaidLinkManager();
+  const { linkToken, isLoading, error, createLinkToken, exchangePublicToken } =
+    usePlaidLinkManager();
 
   const handleSuccess = async (publicToken: string, metadata: any) => {
     try {
@@ -51,31 +49,34 @@ function BankLinkingPage() {
 ### Server Endpoints
 
 #### Create Link Token
+
 ```typescript
 // POST /api/plaid/link-token
 export async function POST(request: NextRequest) {
   const { userId } = await request.json();
-  
+
   const linkToken = await PlaidService.createLinkToken(userId);
-  
+
   return NextResponse.json({ link_token: linkToken });
 }
 ```
 
 #### Exchange Public Token
+
 ```typescript
 // POST /api/plaid/exchange-token
 export async function POST(request: NextRequest) {
   const { public_token } = await request.json();
-  
-  const { accessToken, itemId } = await PlaidService.exchangePublicToken(public_token);
-  
+
+  const { accessToken, itemId } =
+    await PlaidService.exchangePublicToken(public_token);
+
   // Update user with access token
   await prisma.user.update({
     where: { id: session.user.id },
-    data: { plaidAccessToken: accessToken, plaidItemId: itemId }
+    data: { plaidAccessToken: accessToken, plaidItemId: itemId },
   });
-  
+
   return NextResponse.json({ success: true });
 }
 ```
@@ -143,7 +144,7 @@ export async function POST(request: NextRequest) {
   }
 
   const event = JSON.parse(payload);
-  
+
   // Check idempotency
   if (processedWebhooks.has(event.data?.id)) {
     return NextResponse.json({ message: 'Already processed' });
@@ -172,7 +173,7 @@ function verifyPaystackSignature(payload: string, signature: string): boolean {
     .createHmac('sha512', secret)
     .update(payload)
     .digest('hex');
-  
+
   return hash === signature;
 }
 ```
@@ -213,21 +214,19 @@ const transaction = await LedgerService.createTransaction({
   external_id: `TXN_${Date.now()}`,
   user_id: 'user_123',
   account_id: 'account_456',
-  amount: 100.00,
+  amount: 100.0,
   currency: 'USD',
   type: 'income',
   description: 'Salary payment',
   reference: `REF_${Date.now()}`,
   provider: 'manual',
-  metadata: { source: 'salary' }
+  metadata: { source: 'salary' },
 });
 
 // Update transaction status
-await LedgerService.updateTransactionStatus(
-  transaction.id,
-  'completed',
-  { paystackData: webhookData }
-);
+await LedgerService.updateTransactionStatus(transaction.id, 'completed', {
+  paystackData: webhookData,
+});
 
 // Get transaction stats
 const stats = await LedgerService.getTransactionStats(
@@ -292,10 +291,10 @@ model Transaction {
   updated_at    DateTime @updatedAt
   processed_at  DateTime?
   reconciled_at DateTime?
-  
+
   user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
   account Account @relation(fields: [account_id], references: [id], onDelete: Cascade)
-  
+
   @@map("transactions")
 }
 
@@ -312,11 +311,11 @@ model Account {
   created_at          DateTime @default(now())
   updated_at          DateTime @updatedAt
   last_synced_at      DateTime?
-  
+
   user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
   transactions Transaction[]
   ledgerEntries LedgerEntry[]
-  
+
   @@map("accounts")
 }
 
@@ -331,11 +330,11 @@ model LedgerEntry {
   description   String
   reference     String
   created_at    DateTime @default(now())
-  
+
   transaction Transaction @relation(fields: [transaction_id], references: [id], onDelete: Cascade)
   account     Account     @relation(fields: [account_id], references: [id], onDelete: Cascade)
   user        User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
+
   @@map("ledger_entries")
 }
 

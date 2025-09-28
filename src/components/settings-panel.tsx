@@ -54,6 +54,16 @@ export function SettingsPanel() {
     setTimeout(() => setSaving(false), 2000);
   };
 
+  const handleEnable2FA = () => {
+    // Handle 2FA enablement
+    console.log('Enabling 2FA...');
+  };
+
+  const handleConnectBank = () => {
+    // Handle bank connection
+    window.location.href = '/plaid-link';
+  };
+
   return (
     <div className='space-y-6'>
       {/* Header */}
@@ -427,7 +437,9 @@ export function SettingsPanel() {
                       </div>
                       <div className='flex items-center space-x-2'>
                         <Badge variant='outline'>Not Enabled</Badge>
-                        <Button size='sm'>Enable</Button>
+                        <Button size='sm' onClick={handleEnable2FA}>
+                          Enable
+                        </Button>
                       </div>
                     </div>
 
@@ -629,7 +641,9 @@ export function SettingsPanel() {
                           </p>
                         </div>
                       </div>
-                      <Button size='sm'>Connect</Button>
+                      <Button size='sm' onClick={handleConnectBank}>
+                        Connect
+                      </Button>
                     </div>
                   </div>
                 </CardContent>

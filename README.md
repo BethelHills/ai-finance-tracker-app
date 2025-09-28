@@ -9,36 +9,43 @@
 
 > An intelligent personal finance management application powered by AI to provide insights, automated categorization, and personalized financial advice.
 
-## Live Demo  
-[AI Finance Tracker - Live on Vercel](https://ai-finance-tracker-rldzwhtxc-bethelhills-projects.vercel.app)  
+## Live Demo
 
-## Features  
-- Google OAuth login (via NextAuth.js)  
-- Next.js App Router  
-- TailwindCSS UI  
+[AI Finance Tracker - Live on Vercel](https://ai-finance-tracker-rldzwhtxc-bethelhills-projects.vercel.app)
+
+## Features
+
+- Google OAuth login (via NextAuth.js)
+- Next.js App Router
+- TailwindCSS UI
 - AI-powered code generation (coming soon)
 
 ## 📸 Screenshots
 
 ### Dashboard Overview
+
 ![Dashboard](https://via.placeholder.com/800x400/1e293b/ffffff?text=Dashboard+Overview)
-*Comprehensive financial dashboard with AI insights, spending charts, and transaction management*
+_Comprehensive financial dashboard with AI insights, spending charts, and transaction management_
 
 ### Transaction Management
+
 ![Transactions](https://via.placeholder.com/800x400/1e293b/ffffff?text=Transaction+Management)
-*Advanced transaction table with search, filtering, and AI-powered categorization*
+_Advanced transaction table with search, filtering, and AI-powered categorization_
 
 ### AI Insights
+
 ![AI Insights](https://via.placeholder.com/800x400/1e293b/ffffff?text=AI+Insights)
-*Intelligent financial recommendations and spending pattern analysis*
+_Intelligent financial recommendations and spending pattern analysis_
 
 ### User Settings
+
 ![Settings](https://via.placeholder.com/800x400/1e293b/ffffff?text=User+Settings)
-*Comprehensive profile settings with currency selection, budget limits, and theme preferences*
+_Comprehensive profile settings with currency selection, budget limits, and theme preferences_
 
 ### Mobile Responsive
+
 ![Mobile](https://via.placeholder.com/400x800/1e293b/ffffff?text=Mobile+View)
-*Fully responsive design optimized for mobile devices*
+_Fully responsive design optimized for mobile devices_
 
 ## 📋 Table of Contents
 

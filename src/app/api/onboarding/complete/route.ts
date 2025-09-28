@@ -13,11 +13,14 @@ export async function POST(request: NextRequest) {
 
     // Store user permissions and complete onboarding
     // In a real implementation, this would save to database
-    console.log(`[ONBOARDING] User ${session.user.id} completed onboarding with permissions:`, permissions);
+    console.log(
+      `[ONBOARDING] User ${session.user.id} completed onboarding with permissions:`,
+      permissions
+    );
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Onboarding completed successfully' 
+    return NextResponse.json({
+      success: true,
+      message: 'Onboarding completed successfully',
     });
   } catch (error) {
     console.error('Onboarding completion error:', error);

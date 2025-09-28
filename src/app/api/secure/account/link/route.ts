@@ -5,12 +5,9 @@ import { SecureBusinessServer } from '@/lib/secure-business-server';
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession();
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const accountData = await request.json();
@@ -27,16 +24,17 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      account: result 
+      account: result,
     });
   } catch (error) {
     console.error('Secure account linking error:', error);
     return NextResponse.json(
-      { 
-        error: error instanceof Error ? error.message : 'Account linking failed',
-        success: false 
+      {
+        error:
+          error instanceof Error ? error.message : 'Account linking failed',
+        success: false,
       },
       { status: 500 }
     );

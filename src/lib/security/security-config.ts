@@ -100,7 +100,9 @@ export class SecurityConfigService {
     // Validate configuration
     const validation = this.validateConfig({ ...this.config, ...updates });
     if (!validation.valid) {
-      throw new Error(`Invalid security configuration: ${validation.errors.join(', ')}`);
+      throw new Error(
+        `Invalid security configuration: ${validation.errors.join(', ')}`
+      );
     }
 
     // Update configuration
@@ -127,16 +129,22 @@ export class SecurityConfigService {
     }
 
     if (!config.encryption.fieldLevelEncryption) {
-      warnings.push('Field-level encryption is disabled - sensitive data may be at risk');
+      warnings.push(
+        'Field-level encryption is disabled - sensitive data may be at risk'
+      );
     }
 
     // Authentication validation
     if (config.authentication.sessionTimeout < 15) {
-      warnings.push('Session timeout is very short - may impact user experience');
+      warnings.push(
+        'Session timeout is very short - may impact user experience'
+      );
     }
 
     if (config.authentication.maxLoginAttempts > 10) {
-      warnings.push('High number of login attempts allowed - consider reducing for security');
+      warnings.push(
+        'High number of login attempts allowed - consider reducing for security'
+      );
     }
 
     if (config.authentication.passwordPolicy.minLength < 8) {
@@ -149,12 +157,16 @@ export class SecurityConfigService {
     }
 
     if (!config.authorization.leastPrivilege) {
-      warnings.push('Least privilege principle is disabled - users may have excessive permissions');
+      warnings.push(
+        'Least privilege principle is disabled - users may have excessive permissions'
+      );
     }
 
     // Compliance validation
     if (config.compliance.auditRetentionDays < 2555) {
-      warnings.push('Audit retention period is less than 7 years - may not meet compliance requirements');
+      warnings.push(
+        'Audit retention period is less than 7 years - may not meet compliance requirements'
+      );
     }
 
     return {
@@ -184,7 +196,9 @@ export class SecurityConfigService {
     // Check secrets management
     const secretsValidation = SecretsManager.validateSecrets();
     if (!secretsValidation.valid) {
-      issues.push(`Missing required secrets: ${secretsValidation.missing.join(', ')}`);
+      issues.push(
+        `Missing required secrets: ${secretsValidation.missing.join(', ')}`
+      );
       score -= 20;
     }
 
@@ -194,9 +208,12 @@ export class SecurityConfigService {
     }
 
     // Check access control
-    const accessControlReport = await AccessControlService.getAccessControlReport();
+    const accessControlReport =
+      await AccessControlService.getAccessControlReport();
     if (accessControlReport.highPrivilegeUsers > 10) {
-      issues.push(`Too many high-privilege users: ${accessControlReport.highPrivilegeUsers}`);
+      issues.push(
+        `Too many high-privilege users: ${accessControlReport.highPrivilegeUsers}`
+      );
       score -= 15;
     }
 
@@ -224,7 +241,9 @@ export class SecurityConfigService {
     }
 
     if (score < 70) {
-      recommendations.push('Enable field-level encryption for all sensitive data');
+      recommendations.push(
+        'Enable field-level encryption for all sensitive data'
+      );
     }
 
     if (score < 60) {
@@ -260,7 +279,7 @@ export class SecurityConfigService {
     recommendations: string[];
   }> {
     const audit = await this.performSecurityAudit();
-    
+
     const recommendations = [
       'Regularly rotate encryption keys',
       'Implement multi-factor authentication',
@@ -351,7 +370,9 @@ export class SecurityConfigService {
     // Validate current configuration
     const validation = this.validateConfig(this.config);
     if (!validation.valid) {
-      throw new Error(`Security configuration validation failed: ${validation.errors.join(', ')}`);
+      throw new Error(
+        `Security configuration validation failed: ${validation.errors.join(', ')}`
+      );
     }
 
     console.log('[SECURITY] Security configuration initialized successfully');

@@ -23,13 +23,17 @@ export class SecretsManager {
    */
   static getSecret(key: string, required: boolean = true): string {
     const value = process.env[key];
-    
+
     if (required && !value) {
-      throw new Error(`Required secret ${key} is not set in environment variables`);
+      throw new Error(
+        `Required secret ${key} is not set in environment variables`
+      );
     }
 
     if (value && this.isPotentiallyExposed(value)) {
-      console.warn(`[SECURITY WARNING] Secret ${key} may be exposed in logs or code`);
+      console.warn(
+        `[SECURITY WARNING] Secret ${key} may be exposed in logs or code`
+      );
     }
 
     return value || '';
@@ -40,7 +44,7 @@ export class SecretsManager {
    */
   static async getEncryptedSecret(key: string): Promise<string> {
     const encryptedValue = this.getSecret(key);
-    
+
     if (!encryptedValue) {
       throw new Error(`Encrypted secret ${key} is not set`);
     }
@@ -57,19 +61,22 @@ export class SecretsManager {
    */
   static async encrypt(data: string, key?: string): Promise<string> {
     const encryptionKey = key || this.getSecret('ENCRYPTION_KEY');
-    
+
     if (!encryptionKey) {
       throw new Error('Encryption key not found');
     }
 
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipher(this.ENCRYPTION_ALGORITHM, encryptionKey);
-    
+    const cipher = crypto.createCipher(
+      this.ENCRYPTION_ALGORITHM,
+      encryptionKey
+    );
+
     let encrypted = cipher.update(data, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    
+
     const authTag = cipher.getAuthTag();
-    
+
     // Combine IV, auth tag, and encrypted data
     return iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted;
   }
@@ -79,7 +86,7 @@ export class SecretsManager {
    */
   static async decrypt(encryptedData: string, key?: string): Promise<string> {
     const encryptionKey = key || this.getSecret('ENCRYPTION_KEY');
-    
+
     if (!encryptionKey) {
       throw new Error('Encryption key not found');
     }
@@ -93,7 +100,10 @@ export class SecretsManager {
     const authTag = Buffer.from(parts[1], 'hex');
     const encrypted = parts[2];
 
-    const decipher = crypto.createDecipher(this.ENCRYPTION_ALGORITHM, encryptionKey);
+    const decipher = crypto.createDecipher(
+      this.ENCRYPTION_ALGORITHM,
+      encryptionKey
+    );
     decipher.setAuthTag(authTag);
 
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
@@ -159,7 +169,7 @@ export class SecretsManager {
    */
   private static detectHardcodedSecrets(): string[] {
     const warnings: string[] = [];
-    
+
     // Common secret patterns
     const secretPatterns = [
       /sk_live_[a-zA-Z0-9]{24,}/, // Stripe live key
@@ -200,10 +210,10 @@ export class SecretsManager {
    */
   static async rotateSecret(key: string): Promise<string> {
     const newValue = crypto.randomBytes(32).toString('hex');
-    
+
     // In production, this would update the secret in Vercel/Secrets Manager
     console.log(`[SECURITY] Secret ${key} rotated successfully`);
-    
+
     return newValue;
   }
 
@@ -218,13 +228,14 @@ export class SecretsManager {
    * Generate secure password
    */
   static generateSecurePassword(length: number = 16): string {
-    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    const charset =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
     let password = '';
-    
+
     for (let i = 0; i < length; i++) {
       password += charset.charAt(Math.floor(Math.random() * charset.length));
     }
-    
+
     return password;
   }
 

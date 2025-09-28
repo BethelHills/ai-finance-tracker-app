@@ -5,7 +5,7 @@ import { QueueManager } from '@/lib/queue';
 export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
-    
+
     // Save webhook event to MongoDB
     const eventId = await MongoDBService.saveWebhookEvent({
       provider: 'plaid',

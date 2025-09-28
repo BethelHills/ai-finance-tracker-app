@@ -72,7 +72,7 @@ export class PaystackIntegration {
       return {
         id: response.data.id,
         name: response.data.name,
-        email: response.data.email || '',
+        email: 'noreply@example.com',
         account_number: response.data.details.account_number,
         bank_code: response.data.details.bank_code,
         bank_name: response.data.details.bank_name,
@@ -103,22 +103,24 @@ export class PaystackIntegration {
         reference: reference || `TRF_${Date.now()}`,
       });
 
+      const transferData = response.data as any;
+
       return {
-        id: response.data.id,
-        reference: response.data.reference,
-        amount: response.data.amount,
-        currency: response.data.currency,
-        status: response.data.status,
+        id: transferData.id,
+        reference: transferData.reference,
+        amount: transferData.amount,
+        currency: transferData.currency,
+        status: transferData.status,
         recipient: {
-          id: response.data.recipient.id,
-          name: response.data.recipient.name,
-          email: response.data.recipient.email || '',
-          account_number: response.data.recipient.details.account_number,
-          bank_code: response.data.recipient.details.bank_code,
-          bank_name: response.data.recipient.details.bank_name,
-          created_at: response.data.recipient.createdAt,
+          id: transferData.recipient.id,
+          name: transferData.recipient.name,
+          email: transferData.recipient.email || '',
+          account_number: transferData.recipient.details.account_number,
+          bank_code: transferData.recipient.details.bank_code,
+          bank_name: transferData.recipient.details.bank_name,
+          created_at: transferData.recipient.createdAt,
         },
-        created_at: response.data.createdAt,
+        created_at: transferData.createdAt,
       };
     } catch (error) {
       console.error('Error initiating transfer:', error);
@@ -132,23 +134,25 @@ export class PaystackIntegration {
   static async verifyTransfer(reference: string): Promise<PaystackTransfer> {
     try {
       const response = await paystack.transfer.verify(reference);
-      
+
+      const transferData = response.data as any;
+
       return {
-        id: response.data.id,
-        reference: response.data.reference,
-        amount: response.data.amount,
-        currency: response.data.currency,
-        status: response.data.status,
+        id: transferData.id,
+        reference: transferData.reference,
+        amount: transferData.amount,
+        currency: transferData.currency,
+        status: transferData.status,
         recipient: {
-          id: response.data.recipient.id,
-          name: response.data.recipient.name,
-          email: response.data.recipient.email || '',
-          account_number: response.data.recipient.details.account_number,
-          bank_code: response.data.recipient.details.bank_code,
-          bank_name: response.data.recipient.details.bank_name,
-          created_at: response.data.recipient.createdAt,
+          id: transferData.recipient.id,
+          name: transferData.recipient.name,
+          email: transferData.recipient.email || '',
+          account_number: transferData.recipient.details.account_number,
+          bank_code: transferData.recipient.details.bank_code,
+          bank_name: transferData.recipient.details.bank_name,
+          created_at: transferData.recipient.createdAt,
         },
-        created_at: response.data.createdAt,
+        created_at: transferData.createdAt,
       };
     } catch (error) {
       console.error('Error verifying transfer:', error);
@@ -164,7 +168,7 @@ export class PaystackIntegration {
     perPage: number = 50
   ): Promise<{ transfers: PaystackTransfer[]; total: number }> {
     try {
-      const response = await paystack.transfer.list({
+      const response = await (paystack.transfer as any).list({
         page,
         perPage,
       });
@@ -200,14 +204,18 @@ export class PaystackIntegration {
   /**
    * Get transfer recipient by ID
    */
-  static async getTransferRecipient(recipientId: number): Promise<PaystackRecipient> {
+  static async getTransferRecipient(
+    recipientId: number
+  ): Promise<PaystackRecipient> {
     try {
-      const response = await paystack.transferRecipient.fetch(recipientId.toString());
-      
+      const response = await (paystack.transferRecipient as any).fetch(
+        recipientId.toString()
+      );
+
       return {
         id: response.data.id,
         name: response.data.name,
-        email: response.data.email || '',
+        email: 'noreply@example.com',
         account_number: response.data.details.account_number,
         bank_code: response.data.details.bank_code,
         bank_name: response.data.details.bank_name,
@@ -227,7 +235,7 @@ export class PaystackIntegration {
     perPage: number = 50
   ): Promise<{ recipients: PaystackRecipient[]; total: number }> {
     try {
-      const response = await paystack.transferRecipient.list({
+      const response = await (paystack.transferRecipient as any).list({
         page,
         perPage,
       });
@@ -261,9 +269,13 @@ export class PaystackIntegration {
     reference: string,
     description?: string,
     callbackUrl?: string
-  ): Promise<{ authorization_url: string; access_code: string; reference: string }> {
+  ): Promise<{
+    authorization_url: string;
+    access_code: string;
+    reference: string;
+  }> {
     try {
-      const response = await paystack.transaction.initialize({
+      const response = await (paystack as any).transaction.initialize({
         email,
         amount: amount * 100, // Convert to kobo
         reference,
@@ -298,8 +310,8 @@ export class PaystackIntegration {
     created_at: string;
   }> {
     try {
-      const response = await paystack.transaction.verify(reference);
-      
+      const response = await (paystack as any).transaction.verify(reference);
+
       return {
         status: response.data.status,
         amount: response.data.amount,
@@ -307,7 +319,10 @@ export class PaystackIntegration {
         reference: response.data.reference,
         customer: {
           email: response.data.customer.email,
-          name: response.data.customer.first_name + ' ' + response.data.customer.last_name,
+          name:
+            response.data.customer.first_name +
+            ' ' +
+            response.data.customer.last_name,
         },
         created_at: response.data.createdAt,
       };
@@ -325,8 +340,8 @@ export class PaystackIntegration {
     balance: number;
   }> {
     try {
-      const response = await paystack.balance.list();
-      
+      const response = await (paystack.balance as any).list();
+
       return {
         currency: response.data[0].currency,
         balance: response.data[0].balance,

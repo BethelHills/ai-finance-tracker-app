@@ -3,14 +3,20 @@
 import { useEffect, useState } from 'react';
 import { usePlaidLink } from 'react-plaid-link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Building2, 
-  CheckCircle, 
+import {
+  Building2,
+  CheckCircle,
   AlertTriangle,
   Loader2,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -27,7 +33,7 @@ export function PlaidLinkComponent({
   onSuccess,
   onExit,
   institutionName,
-  disabled = false
+  disabled = false,
 }: PlaidLinkComponentProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -37,54 +43,43 @@ export function PlaidLinkComponent({
     onSuccess: (publicToken: string, metadata: any) => {
       console.log('Plaid Link Success:', { publicToken, metadata });
       setIsLoading(true);
-      
+
       // Call the success handler
       onSuccess(publicToken, metadata);
-      
-      toast({
-        title: 'Account Linked Successfully',
-        description: `Connected ${metadata.institution?.name || 'bank account'}`,
-      });
+
+      toast.success(
+        `Connected ${metadata.institution?.name || 'bank account'}`
+      );
     },
     onExit: (error: any, metadata: any) => {
       console.log('Plaid Link Exit:', { error, metadata });
-      
+
       if (error) {
-        toast({
-          title: 'Link Failed',
-          description: error.error_message || 'Failed to link account',
-          variant: 'destructive',
-        });
+        toast.error(error.error_message || 'Failed to link account');
       }
-      
+
       if (onExit) {
         onExit(error, metadata);
       }
     },
     onEvent: (eventName: string, metadata: any) => {
       console.log('Plaid Link Event:', eventName, metadata);
-      
+
       switch (eventName) {
         case 'OPEN':
-          toast({
-            title: 'Opening Plaid Link',
-            description: 'Please complete the authentication process',
-          });
+          toast.info(
+            'Opening Plaid Link - Please complete the authentication process'
+          );
           break;
         case 'EXIT':
           if (metadata.error) {
-            toast({
-              title: 'Authentication Failed',
-              description: metadata.error.error_message,
-              variant: 'destructive',
-            });
+            toast.error(metadata.error.error_message);
           }
           break;
         case 'HANDOFF':
-          toast({
-            title: 'Redirecting to Bank',
-            description: 'You will be redirected to your bank\'s website',
-          });
+          toast.info(
+            "Redirecting to Bank - You will be redirected to your bank's website"
+          );
           break;
       }
     },
@@ -101,9 +96,9 @@ export function PlaidLinkComponent({
   if (error) {
     return (
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center space-x-2 text-red-600">
-            <AlertTriangle className="h-5 w-5" />
+        <CardContent className='pt-6'>
+          <div className='flex items-center space-x-2 text-red-600'>
+            <AlertTriangle className='h-5 w-5' />
             <span>Error: {error.message}</span>
           </div>
         </CardContent>
@@ -114,26 +109,25 @@ export function PlaidLinkComponent({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Building2 className="h-5 w-5" />
+        <CardTitle className='flex items-center space-x-2'>
+          <Building2 className='h-5 w-5' />
           <span>Connect Bank Account</span>
         </CardTitle>
         <CardDescription>
-          {institutionName 
+          {institutionName
             ? `Connect your ${institutionName} account securely`
-            : 'Securely connect your bank account to sync transactions'
-          }
+            : 'Securely connect your bank account to sync transactions'}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+        <div className='space-y-4'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center space-x-2'>
               <Badge variant={ready ? 'default' : 'secondary'}>
                 {ready ? 'Ready' : 'Loading...'}
               </Badge>
               {linkToken && (
-                <Badge variant="outline">
+                <Badge variant='outline'>
                   Token: {linkToken.substring(0, 8)}...
                 </Badge>
               )}
@@ -143,23 +137,28 @@ export function PlaidLinkComponent({
           <Button
             onClick={handleClick}
             disabled={!ready || disabled || isLoading}
-            className="w-full"
+            className='w-full'
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className='h-4 w-4 mr-2 animate-spin' />
                 Processing...
               </>
             ) : (
               <>
-                <Building2 className="h-4 w-4 mr-2" />
-                {institutionName ? `Connect to ${institutionName}` : 'Connect Bank Account'}
+                <Building2 className='h-4 w-4 mr-2' />
+                {institutionName
+                  ? `Connect to ${institutionName}`
+                  : 'Connect Bank Account'}
               </>
             )}
           </Button>
 
-          <div className="text-xs text-gray-500 text-center">
-            <p>Your bank credentials are never stored. We use bank-level security.</p>
+          <div className='text-xs text-gray-500 text-center'>
+            <p>
+              Your bank credentials are never stored. We use bank-level
+              security.
+            </p>
           </div>
         </div>
       </CardContent>
@@ -273,13 +272,8 @@ export function usePlaidLinkManager() {
 
 // Example usage component
 export function PlaidLinkExample() {
-  const { 
-    linkToken, 
-    isLoading, 
-    error, 
-    createLinkToken, 
-    exchangePublicToken 
-  } = usePlaidLinkManager();
+  const { linkToken, isLoading, error, createLinkToken, exchangePublicToken } =
+    usePlaidLinkManager();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -291,18 +285,11 @@ export function PlaidLinkExample() {
     try {
       const result = await exchangePublicToken(publicToken);
       console.log('Exchange successful:', result);
-      
-      toast({
-        title: 'Account Connected',
-        description: 'Your bank account has been successfully linked',
-      });
+
+      toast.success('Your bank account has been successfully linked');
     } catch (error) {
       console.error('Exchange failed:', error);
-      toast({
-        title: 'Connection Failed',
-        description: 'Failed to complete account linking',
-        variant: 'destructive',
-      });
+      toast.error('Failed to complete account linking');
     }
   };
 
@@ -311,17 +298,17 @@ export function PlaidLinkExample() {
   };
 
   return (
-    <div className="max-w-md mx-auto">
+    <div className='max-w-md mx-auto'>
       <PlaidLinkComponent
         linkToken={linkToken}
         onSuccess={handleSuccess}
         onExit={handleExit}
         disabled={isLoading}
       />
-      
+
       {error && (
-        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-800 text-sm">{error}</p>
+        <div className='mt-4 p-4 bg-red-50 border border-red-200 rounded-lg'>
+          <p className='text-red-800 text-sm'>{error}</p>
         </div>
       )}
     </div>

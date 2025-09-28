@@ -23,7 +23,7 @@ export class SecureBusinessServer {
     operation: () => Promise<T>
   ): Promise<T> {
     const startTime = Date.now();
-    
+
     try {
       // Log operation start
       await this.logAuditEvent({
@@ -39,9 +39,9 @@ export class SecureBusinessServer {
       await this.logAuditEvent({
         ...context,
         action: `${context.operation}_completed`,
-        details: { 
+        details: {
           duration: Date.now() - startTime,
-          success: true 
+          success: true,
         },
       });
 
@@ -51,10 +51,10 @@ export class SecureBusinessServer {
       await this.logAuditEvent({
         ...context,
         action: `${context.operation}_failed`,
-        details: { 
+        details: {
           duration: Date.now() - startTime,
           error: error instanceof Error ? error.message : 'Unknown error',
-          success: false 
+          success: false,
         },
       });
 
@@ -75,7 +75,10 @@ export class SecureBusinessServer {
       categoryId?: string;
       metadata?: any;
     },
-    context: Omit<SecureOperationContext, 'operation' | 'resource' | 'resourceId'>
+    context: Omit<
+      SecureOperationContext,
+      'operation' | 'resource' | 'resourceId'
+    >
   ) {
     return await this.executeSecureOperation(
       {
@@ -103,7 +106,11 @@ export class SecureBusinessServer {
         });
 
         // Update account balance
-        await this.updateAccountBalance(transactionData.accountId, transactionData.amount, transactionData.type);
+        await this.updateAccountBalance(
+          transactionData.accountId,
+          transactionData.amount,
+          transactionData.type
+        );
 
         // Add AI categorization job
         await QueueManager.addAICategorization(
@@ -131,7 +138,10 @@ export class SecureBusinessServer {
       balance: number;
       currency: string;
     },
-    context: Omit<SecureOperationContext, 'operation' | 'resource' | 'resourceId'>
+    context: Omit<
+      SecureOperationContext,
+      'operation' | 'resource' | 'resourceId'
+    >
   ) {
     return await this.executeSecureOperation(
       {
@@ -178,7 +188,9 @@ export class SecureBusinessServer {
         await QueueManager.addTransactionSync(
           userId,
           accountData.accessToken,
-          new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split('T')[0],
           new Date().toISOString().split('T')[0]
         );
 
@@ -199,7 +211,10 @@ export class SecureBusinessServer {
       description: string;
       provider: 'stripe' | 'paystack' | 'flutterwave';
     },
-    context: Omit<SecureOperationContext, 'operation' | 'resource' | 'resourceId'>
+    context: Omit<
+      SecureOperationContext,
+      'operation' | 'resource' | 'resourceId'
+    >
   ) {
     return await this.executeSecureOperation(
       {
@@ -240,9 +255,12 @@ export class SecureBusinessServer {
             description: paymentData.description,
             type: 'EXPENSE',
             userId,
-            accountId: (await prisma.account.findFirst({
-              where: { userId }
-            }))?.id || '',
+            accountId:
+              (
+                await prisma.account.findFirst({
+                  where: { userId },
+                })
+              )?.id || '',
             date: new Date(),
             metadata: {
               provider: paymentData.provider,
@@ -263,7 +281,10 @@ export class SecureBusinessServer {
   static async exportUserData(
     userId: string,
     exportType: 'transactions' | 'accounts' | 'full',
-    context: Omit<SecureOperationContext, 'operation' | 'resource' | 'resourceId'>
+    context: Omit<
+      SecureOperationContext,
+      'operation' | 'resource' | 'resourceId'
+    >
   ) {
     return await this.executeSecureOperation(
       {
@@ -276,7 +297,7 @@ export class SecureBusinessServer {
         // Check if user has permission to export data
         await this.checkDataExportPermissions(userId);
 
-        let exportData: any = {};
+        const exportData: any = {};
 
         if (exportType === 'transactions' || exportType === 'full') {
           exportData.transactions = await prisma.transaction.findMany({
@@ -321,11 +342,16 @@ export class SecureBusinessServer {
   }
 
   // Private helper methods
-  private static async logAuditEvent(event: Omit<AuditLog, '_id' | 'timestamp'>) {
+  private static async logAuditEvent(
+    event: Omit<AuditLog, '_id' | 'timestamp'>
+  ) {
     await MongoDBService.logAuditEvent(event);
   }
 
-  private static async detectSuspiciousActivity(userId: string, transactionData: any) {
+  private static async detectSuspiciousActivity(
+    userId: string,
+    transactionData: any
+  ) {
     // Implement fraud detection logic
     // This could include checking for unusual patterns, amounts, etc.
     const recentTransactions = await prisma.transaction.findMany({
@@ -355,7 +381,11 @@ export class SecureBusinessServer {
     }
   }
 
-  private static async updateAccountBalance(accountId: string, amount: number, type: string) {
+  private static async updateAccountBalance(
+    accountId: string,
+    amount: number,
+    type: string
+  ) {
     const account = await prisma.account.findUnique({
       where: { id: accountId },
     });
@@ -378,7 +408,10 @@ export class SecureBusinessServer {
     // This would call Plaid's API to verify the token is still valid
   }
 
-  private static async checkComplianceRequirements(userId: string, paymentData: any) {
+  private static async checkComplianceRequirements(
+    userId: string,
+    paymentData: any
+  ) {
     // Implement compliance checks based on jurisdiction
     // This could include KYC checks, AML screening, etc.
   }
