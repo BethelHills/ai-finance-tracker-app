@@ -8,6 +8,7 @@ import {
   TransactionStatsComponent,
   CategoryBreakdown,
 } from '@/components/transaction-stats';
+import { SearchFilter } from '@/components/search-filter';
 import { CreateTransactionData, Transaction } from '@/types/transaction';
 import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
@@ -111,6 +112,22 @@ export function TransactionsPage() {
 
       {/* Category Breakdown */}
       <CategoryBreakdown stats={stats} />
+
+      {/* Search and Filter */}
+      <SearchFilter
+        onSearch={query => {
+          // Handle search functionality
+          console.log('Search query:', query);
+        }}
+        onFilter={filters => {
+          // Handle filter functionality
+          console.log('Filters:', filters);
+        }}
+        onClear={() => {
+          // Handle clear functionality
+          console.log('Clear filters');
+        }}
+      />
 
       {/* Transaction Form */}
       {showForm && (

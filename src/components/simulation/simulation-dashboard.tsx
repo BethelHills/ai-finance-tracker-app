@@ -20,6 +20,7 @@ import {
   RefreshCw,
   Eye,
   EyeOff,
+  Target,
 } from 'lucide-react';
 import { useSimulation } from '@/lib/simulation/simulation-context';
 
@@ -63,11 +64,30 @@ export function SimulationDashboard() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
-        <Card>
+      {/* Main Financial Overview Cards */}
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+        {/* Balance Card */}
+        <Card className='border-l-4 border-l-blue-500'>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Total Income</CardTitle>
+            <CardTitle className='text-sm font-medium'>Total Balance</CardTitle>
+            <DollarSign className='h-4 w-4 text-blue-600' />
+          </CardHeader>
+          <CardContent>
+            <div className='text-2xl font-bold text-blue-600'>
+              ${stats.netWorth.toLocaleString()}
+            </div>
+            <p className='text-xs text-muted-foreground'>
+              Across {stats.accountCount} accounts
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Income Card */}
+        <Card className='border-l-4 border-l-green-500'>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>
+              Monthly Income
+            </CardTitle>
             <TrendingUp className='h-4 w-4 text-green-600' />
           </CardHeader>
           <CardContent>
@@ -80,10 +100,11 @@ export function SimulationDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        {/* Expenses Card */}
+        <Card className='border-l-4 border-l-red-500'>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
             <CardTitle className='text-sm font-medium'>
-              Total Expenses
+              Monthly Expenses
             </CardTitle>
             <TrendingDown className='h-4 w-4 text-red-600' />
           </CardHeader>
@@ -97,31 +118,22 @@ export function SimulationDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        {/* Savings Card */}
+        <Card className='border-l-4 border-l-emerald-500'>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Net Worth</CardTitle>
-            <DollarSign className='h-4 w-4 text-blue-600' />
+            <CardTitle className='text-sm font-medium'>
+              Monthly Savings
+            </CardTitle>
+            <Target className='h-4 w-4 text-emerald-600' />
           </CardHeader>
           <CardContent>
-            <div className='text-2xl font-bold text-blue-600'>
-              ${stats.netWorth.toLocaleString()}
+            <div className='text-2xl font-bold text-emerald-600'>
+              ${stats.netAmount.toLocaleString()}
             </div>
             <p className='text-xs text-muted-foreground'>
-              Across {stats.accountCount} accounts
+              {((stats.netAmount / stats.totalIncome) * 100).toFixed(1)}%
+              savings rate
             </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Transactions</CardTitle>
-            <Activity className='h-4 w-4 text-purple-600' />
-          </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold text-purple-600'>
-              {stats.transactionCount}
-            </div>
-            <p className='text-xs text-muted-foreground'>This month</p>
           </CardContent>
         </Card>
       </div>
