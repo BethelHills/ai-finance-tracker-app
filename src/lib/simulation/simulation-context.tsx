@@ -131,13 +131,13 @@ export function SimulationModeIndicator() {
   if (!isSimulationMode) return null;
 
   return (
-    <div className='fixed top-4 right-4 z-50'>
-      <div className='bg-yellow-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2'>
-        <div className='w-2 h-2 bg-white rounded-full animate-pulse'></div>
-        <span className='text-sm font-medium'>SIMULATION MODE</span>
+    <div className='fixed top-4 right-4 z-40'>
+      <div className='bg-yellow-500/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-md shadow-md flex items-center space-x-2 text-xs'>
+        <div className='w-1.5 h-1.5 bg-white rounded-full animate-pulse'></div>
+        <span className='font-medium'>SIM</span>
         <button
           onClick={toggleSimulationMode}
-          className='ml-2 text-white hover:text-gray-200 text-xs underline'
+          className='ml-1 text-white hover:text-gray-200 underline text-xs'
         >
           Exit
         </button>

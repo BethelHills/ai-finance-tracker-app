@@ -3,7 +3,6 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { ThemeProvider } from '@/components/theme-provider';
-import { MobileHeader } from '@/components/mobile-navigation';
 import { ToastProvider } from '@/components/toast-provider';
 import { UserSettingsProvider } from '@/contexts/user-settings-context';
 import { AuthProvider } from '@/contexts/auth-context';
@@ -37,7 +36,6 @@ export default function RootLayout({
               <UserSettingsProvider>
                 <Providers>
                   <ToastProvider />
-                  <MobileHeader />
                   <SimulationModeIndicator />
                   {children}
                 </Providers>
