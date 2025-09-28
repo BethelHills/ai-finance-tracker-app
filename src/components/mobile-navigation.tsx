@@ -19,15 +19,25 @@ import {
 import { Badge } from '@/components/ui/badge';
 
 const navigation = [
-  { name: 'Dashboard', href: '#', icon: Home, current: true },
-  { name: 'Transactions', href: '#', icon: CreditCard, current: false },
-  { name: 'AI Insights', href: '#', icon: TrendingUp, current: false },
-  { name: 'Budgets', href: '#', icon: Target, current: false },
-  { name: 'Analytics', href: '#', icon: BarChart3, current: false },
-  { name: 'Reports', href: '#', icon: PieChart, current: false },
+  { name: 'Dashboard', tab: 'dashboard', icon: Home },
+  { name: 'Transactions', tab: 'transactions', icon: CreditCard },
+  { name: 'AI Insights', tab: 'ai-insights', icon: TrendingUp },
+  { name: 'Budgets', tab: 'budgets', icon: Target },
+  { name: 'Goals', tab: 'goals', icon: TrendingUp },
+  { name: 'Analytics', tab: 'analytics', icon: BarChart3 },
+  { name: 'Reports', tab: 'reports', icon: PieChart },
+  { name: 'Admin', tab: 'admin', icon: Settings },
 ];
 
-export function MobileNavigation() {
+interface MobileNavigationProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
+
+export function MobileNavigation({
+  activeTab,
+  onTabChange,
+}: MobileNavigationProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -54,9 +64,12 @@ export function MobileNavigation() {
               {navigation.map(item => (
                 <Button
                   key={item.name}
-                  variant={item.current ? 'secondary' : 'ghost'}
+                  variant={activeTab === item.tab ? 'secondary' : 'ghost'}
                   className='w-full justify-start'
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    onTabChange(item.tab);
+                    setOpen(false);
+                  }}
                 >
                   <item.icon className='h-4 w-4 mr-3' />
                   {item.name}
@@ -97,7 +110,6 @@ export function MobileHeader() {
   return (
     <div className='lg:hidden flex items-center justify-between px-4 py-3 border-b bg-background'>
       <div className='flex items-center space-x-3'>
-        <MobileNavigation />
         <div className='flex items-center space-x-2'>
           <div className='h-6 w-6 rounded bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center'>
             <span className='text-white font-bold text-xs'>AI</span>

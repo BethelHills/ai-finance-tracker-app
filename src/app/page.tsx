@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { EnhancedDashboard } from '@/components/enhanced-dashboard';
 import { EnhancedFinancialDashboard } from '@/components/enhanced-financial-dashboard';
 import { Header } from '@/components/header';
@@ -8,6 +9,7 @@ import { TransactionsPage } from '@/components/transactions-page';
 import { AnalyticsDashboard } from '@/components/analytics-dashboard';
 import { SearchFilter } from '@/components/search-filter';
 import { MonthlyReport } from '@/components/monthly-report';
+import { BudgetOverview } from '@/components/budget-overview';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { AccountLinking } from '@/components/account-linking';
 import { TransactionReconciliation } from '@/components/transactions/transaction-reconciliation';
@@ -23,28 +25,34 @@ import { SimulationDashboard } from '@/components/simulation/simulation-dashboar
 import { SimulationLandingPage } from '@/components/simulation/landing-page';
 import { useSimulation } from '@/lib/simulation/simulation-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 
 // Force dynamic rendering to avoid static generation issues with useSession
 export const dynamic = 'force-dynamic';
 
 function MainApp() {
   const { isSimulationMode } = useSimulation();
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   if (!isSimulationMode) {
     return <SimulationLandingPage />;
   }
 
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+  };
+
   return (
     <div className='min-h-screen bg-background'>
       {/* Desktop Header */}
       <div className='hidden lg:block'>
-        <Header />
+        <Header activeTab={activeTab} onTabChange={handleTabChange} />
       </div>
 
       <div className='flex'>
         {/* Desktop Sidebar */}
         <div className='hidden lg:block'>
-          <Sidebar />
+          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
         </div>
 
         <main className='flex-1 p-4 lg:p-6'>
@@ -55,15 +63,17 @@ function MainApp() {
             </div>
 
             {/* Main Content Tabs */}
-            <Tabs defaultValue='dashboard' className='space-y-6'>
-              <TabsList className='grid w-full grid-cols-2 lg:grid-cols-10'>
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className='space-y-6'
+            >
+              <TabsList className='grid w-full grid-cols-2 lg:grid-cols-12'>
                 <TabsTrigger value='dashboard'>Dashboard</TabsTrigger>
                 <TabsTrigger value='transactions'>Transactions</TabsTrigger>
-                <TabsTrigger value='reconciliation'>Reconciliation</TabsTrigger>
                 <TabsTrigger value='ai-insights'>AI Insights</TabsTrigger>
-                <TabsTrigger value='payments'>Payments</TabsTrigger>
-                <TabsTrigger value='ledger'>Ledger</TabsTrigger>
-                <TabsTrigger value='compliance'>Compliance</TabsTrigger>
+                <TabsTrigger value='budgets'>Budgets</TabsTrigger>
+                <TabsTrigger value='goals'>Goals</TabsTrigger>
                 <TabsTrigger value='analytics'>Analytics</TabsTrigger>
                 <TabsTrigger value='reports'>Reports</TabsTrigger>
                 <TabsTrigger value='admin'>Admin</TabsTrigger>
@@ -77,24 +87,22 @@ function MainApp() {
                 <TransactionsPage />
               </TabsContent>
 
-              <TabsContent value='reconciliation' className='space-y-6'>
-                <TransactionReconciliation />
-              </TabsContent>
-
               <TabsContent value='ai-insights' className='space-y-6'>
                 <AIInsightsDashboard />
               </TabsContent>
 
-              <TabsContent value='payments' className='space-y-6'>
-                <NigerianPaymentFlow />
+              <TabsContent value='budgets' className='space-y-6'>
+                <BudgetOverview utilization={75} />
               </TabsContent>
 
-              <TabsContent value='ledger' className='space-y-6'>
-                <TransactionLedger />
-              </TabsContent>
-
-              <TabsContent value='compliance' className='space-y-6'>
-                <KYCCompliance />
+              <TabsContent value='goals' className='space-y-6'>
+                <div className='text-center py-12'>
+                  <h2 className='text-2xl font-bold mb-4'>Financial Goals</h2>
+                  <p className='text-muted-foreground mb-6'>
+                    Set and track your financial goals
+                  </p>
+                  <Button>Create New Goal</Button>
+                </div>
               </TabsContent>
 
               <TabsContent value='analytics' className='space-y-6'>

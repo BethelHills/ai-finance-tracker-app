@@ -16,13 +16,14 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const navigation = [
-  { name: 'Dashboard', href: '#', icon: Home, current: true },
-  { name: 'Transactions', href: '#', icon: CreditCard, current: false },
-  { name: 'AI Insights', href: '#', icon: Brain, current: false },
-  { name: 'Budgets', href: '#', icon: Target, current: false },
-  { name: 'Goals', href: '#', icon: TrendingUp, current: false },
-  { name: 'Analytics', href: '#', icon: BarChart3, current: false },
-  { name: 'Reports', href: '#', icon: PieChart, current: false },
+  { name: 'Dashboard', tab: 'dashboard', icon: Home },
+  { name: 'Transactions', tab: 'transactions', icon: CreditCard },
+  { name: 'AI Insights', tab: 'ai-insights', icon: Brain },
+  { name: 'Budgets', tab: 'budgets', icon: Target },
+  { name: 'Goals', tab: 'goals', icon: TrendingUp },
+  { name: 'Analytics', tab: 'analytics', icon: BarChart3 },
+  { name: 'Reports', tab: 'reports', icon: PieChart },
+  { name: 'Admin', tab: 'admin', icon: Settings },
 ];
 
 const aiFeatures = [
@@ -41,7 +42,12 @@ const aiFeatures = [
   },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
+
+export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
@@ -56,11 +62,12 @@ export function Sidebar() {
           {navigation.map(item => (
             <Button
               key={item.name}
-              variant={item.current ? 'secondary' : 'ghost'}
+              variant={activeTab === item.tab ? 'secondary' : 'ghost'}
               className={cn(
                 'w-full justify-start',
                 isCollapsed ? 'px-2' : 'px-3'
               )}
+              onClick={() => onTabChange(item.tab)}
             >
               <item.icon className='h-5 w-5' />
               {!isCollapsed && <span className='ml-3'>{item.name}</span>}

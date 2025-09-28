@@ -8,17 +8,21 @@ import { Badge } from '@/components/ui/badge';
 import { UserMenu } from '@/components/user-menu';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SimulationToggle } from '@/components/simulation/simulation-toggle';
+import { MobileNavigation } from '@/components/mobile-navigation';
 
-export function Header() {
+interface HeaderProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
+
+export function Header({ activeTab, onTabChange }: HeaderProps) {
   const [notifications] = useState(3); // Mock notification count
 
   return (
     <header className='border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
       <div className='flex h-16 items-center justify-between px-6'>
         <div className='flex items-center space-x-4'>
-          <Button variant='ghost' size='icon'>
-            <Menu className='h-5 w-5' />
-          </Button>
+          <MobileNavigation activeTab={activeTab} onTabChange={onTabChange} />
           <div className='flex items-center space-x-2'>
             <div className='h-8 w-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center'>
               <span className='text-white font-bold text-sm'>AI</span>
