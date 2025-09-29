@@ -1,4 +1,5 @@
 // OTP Service for email verification
+import { resendEmailService } from './resend-email-service';
 import { emailService } from './email-service';
 import { fastEmailService } from './fast-email-service';
 import { devEmailService } from './dev-email-service';
@@ -66,33 +67,50 @@ class OTPService {
       console.log(`📧 Sending OTP to ${email}: ${otp}`);
       console.log(`⏰ Expires at: ${new Date(expiresAt).toLocaleString()}`);
 
-      // Check if email credentials are configured
+      // Check email service configuration (prioritize Resend)
+      const hasResendKey = process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 'your_resend_api_key';
       const hasEmailConfig = process.env.EMAIL_USER && 
                             process.env.EMAIL_PASSWORD && 
                             process.env.EMAIL_USER !== 'your-email@gmail.com' &&
                             process.env.EMAIL_PASSWORD !== 'your-app-password';
       
-      console.log('📧 Email config check:', {
-        hasEmailConfig,
-        emailUser: process.env.EMAIL_USER ? 'Set' : 'Not set',
-        emailPassword: process.env.EMAIL_PASSWORD ? 'Set' : 'Not set'
+      console.log('📧 Email service check:', {
+        hasResendKey: hasResendKey ? '✅ Configured' : '❌ Not configured',
+        hasEmailConfig: hasEmailConfig ? '✅ Configured' : '❌ Not configured',
+        willUse: hasResendKey ? 'Resend' : hasEmailConfig ? 'SMTP' : 'Dev Service'
       });
       
       let emailResult;
       
-      if (!hasEmailConfig) {
-        // Use dev email service if no credentials configured
-        console.log('🚀 Using development email service (no credentials configured)');
-        emailResult = await devEmailService.sendOTPEmail(email, otp, type);
-      } else {
-        // Try fast email service first, then fallback to regular service
-        console.log('📧 Using real email service with credentials');
+      if (hasResendKey) {
+        // Use Resend service (fastest and most reliable)
+        console.log('🚀 Using Resend email service (primary)');
+        emailResult = await resendEmailService.sendOTPEmail(email, otp, type);
+        
+        if (!emailResult.success) {
+          console.log('🔄 Resend failed, trying SMTP fallback...');
+          if (hasEmailConfig) {
+            emailResult = await fastEmailService.sendOTPEmail(email, otp, type);
+            if (!emailResult.success) {
+              emailResult = await emailService.sendOTPEmail(email, otp, type);
+            }
+          } else {
+            emailResult = await devEmailService.sendOTPEmail(email, otp, type);
+          }
+        }
+      } else if (hasEmailConfig) {
+        // Use SMTP email service
+        console.log('📧 Using SMTP email service');
         emailResult = await fastEmailService.sendOTPEmail(email, otp, type);
         
         if (!emailResult.success) {
-          console.log('🔄 Fast email failed, trying regular email service...');
+          console.log('🔄 Fast SMTP failed, trying regular SMTP...');
           emailResult = await emailService.sendOTPEmail(email, otp, type);
         }
+      } else {
+        // Use dev email service if no credentials configured
+        console.log('🚀 Using development email service (no credentials configured)');
+        emailResult = await devEmailService.sendOTPEmail(email, otp, type);
       }
 
       if (!emailResult.success) {
