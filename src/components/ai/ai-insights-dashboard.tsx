@@ -26,6 +26,9 @@ import {
   Download,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SmartAlerts } from './smart-alerts';
+import { ExpenseForecast } from './expense-forecast';
+import { SmartCategorization } from './smart-categorization';
 
 interface SpendingAnalysis {
   totalSpent: number;
@@ -563,6 +566,96 @@ export function AIInsightsDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* New AI Features */}
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+        {/* Smart Alerts */}
+        <SmartAlerts
+          currentSpending={{
+            'Food & Dining': 650,
+            Transportation: 420,
+            Entertainment: 180,
+            Utilities: 150,
+            Shopping: 320,
+          }}
+          budgets={{
+            'Food & Dining': 600,
+            Transportation: 400,
+            Entertainment: 200,
+            Utilities: 180,
+            Shopping: 300,
+          }}
+          previousMonthSpending={{
+            'Food & Dining': 580,
+            Transportation: 450,
+            Entertainment: 220,
+            Utilities: 160,
+            Shopping: 280,
+          }}
+          income={5000}
+        />
+
+        {/* Expense Forecast */}
+        <ExpenseForecast
+          historicalData={[
+            {
+              month: '2024-01',
+              spending: {
+                'Food & Dining': 580,
+                Transportation: 450,
+                Entertainment: 220,
+                Utilities: 160,
+                Shopping: 280,
+              },
+              total: 1690,
+            },
+            {
+              month: '2024-02',
+              spending: {
+                'Food & Dining': 620,
+                Transportation: 420,
+                Entertainment: 180,
+                Utilities: 150,
+                Shopping: 320,
+              },
+              total: 1690,
+            },
+            {
+              month: '2024-03',
+              spending: {
+                'Food & Dining': 650,
+                Transportation: 420,
+                Entertainment: 180,
+                Utilities: 150,
+                Shopping: 320,
+              },
+              total: 1720,
+            },
+          ]}
+          currentMonth='2024-03'
+        />
+      </div>
+
+      {/* Smart Categorization */}
+      <SmartCategorization
+        onCategorize={result => {
+          console.log('AI Categorization:', result);
+        }}
+        userHistory={[
+          {
+            description: 'Starbucks Coffee',
+            category: 'Food & Dining',
+            tags: ['coffee', 'beverage'],
+            userCorrected: false,
+          },
+          {
+            description: 'Shell Gas Station',
+            category: 'Transportation',
+            tags: ['gas', 'fuel'],
+            userCorrected: true,
+          },
+        ]}
+      />
     </div>
   );
 }

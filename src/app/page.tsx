@@ -15,7 +15,11 @@ import { AccountLinking } from '@/components/account-linking';
 import { TransactionReconciliation } from '@/components/transactions/transaction-reconciliation';
 import { AuditLogViewer } from '@/components/admin/audit-log-viewer';
 import { AdminDashboard } from '@/components/admin/admin-dashboard';
+import { RecurringPaymentReminder } from '@/components/reminders/recurring-payment-reminder';
+import { EnhancedReportsDashboard } from '@/components/reports/enhanced-reports-dashboard';
 import { OnboardingFlow } from '@/components/onboarding/onboarding-flow';
+import { ProtectedRoute } from '@/components/auth/protected-route';
+import { UserProfile } from '@/components/auth/user-profile';
 import { AIInsightsDashboard } from '@/components/ai/ai-insights-dashboard';
 import { PlaidLinkFlow } from '@/components/plaid/plaid-link-flow';
 import { NigerianPaymentFlow } from '@/components/payments/nigerian-payment-flow';
@@ -44,84 +48,96 @@ function MainApp() {
   };
 
   return (
-    <div className='min-h-screen bg-background'>
-      {/* Desktop Header */}
-      <div className='hidden lg:block'>
-        <Header activeTab={activeTab} onTabChange={handleTabChange} />
-      </div>
-
-      <div className='flex'>
-        {/* Desktop Sidebar */}
+    <ProtectedRoute>
+      <div className='min-h-screen bg-background'>
+        {/* Desktop Header */}
         <div className='hidden lg:block'>
-          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+          <Header activeTab={activeTab} onTabChange={handleTabChange} />
         </div>
 
-        <main className='flex-1 p-4 lg:p-6'>
-          <div className='max-w-7xl mx-auto space-y-6'>
-            {/* Mobile Theme Toggle */}
-            <div className='lg:hidden flex justify-end mb-4'>
-              <ThemeToggle />
-            </div>
-
-            {/* Main Content Tabs */}
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className='space-y-6'
-            >
-              <TabsList className='grid w-full grid-cols-2 lg:grid-cols-12'>
-                <TabsTrigger value='dashboard'>Dashboard</TabsTrigger>
-                <TabsTrigger value='transactions'>Transactions</TabsTrigger>
-                <TabsTrigger value='ai-insights'>AI Insights</TabsTrigger>
-                <TabsTrigger value='budgets'>Budgets</TabsTrigger>
-                <TabsTrigger value='goals'>Goals</TabsTrigger>
-                <TabsTrigger value='analytics'>Analytics</TabsTrigger>
-                <TabsTrigger value='reports'>Reports</TabsTrigger>
-                <TabsTrigger value='admin'>Admin</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value='dashboard' className='space-y-6'>
-                <SimulationDashboard />
-              </TabsContent>
-
-              <TabsContent value='transactions' className='space-y-6'>
-                <TransactionsPage />
-              </TabsContent>
-
-              <TabsContent value='ai-insights' className='space-y-6'>
-                <AIInsightsDashboard />
-              </TabsContent>
-
-              <TabsContent value='budgets' className='space-y-6'>
-                <BudgetOverview utilization={75} />
-              </TabsContent>
-
-              <TabsContent value='goals' className='space-y-6'>
-                <div className='text-center py-12'>
-                  <h2 className='text-2xl font-bold mb-4'>Financial Goals</h2>
-                  <p className='text-muted-foreground mb-6'>
-                    Set and track your financial goals
-                  </p>
-                  <Button>Create New Goal</Button>
-                </div>
-              </TabsContent>
-
-              <TabsContent value='analytics' className='space-y-6'>
-                <AnalyticsDashboard />
-              </TabsContent>
-
-              <TabsContent value='reports' className='space-y-6'>
-                <MonthlyReport />
-              </TabsContent>
-
-              <TabsContent value='admin' className='space-y-6'>
-                <AdminDashboard />
-              </TabsContent>
-            </Tabs>
+        <div className='flex'>
+          {/* Desktop Sidebar */}
+          <div className='hidden lg:block'>
+            <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
           </div>
-        </main>
+
+          <main className='flex-1 p-4 lg:p-6'>
+            <div className='max-w-7xl mx-auto space-y-6'>
+              {/* Mobile Theme Toggle */}
+              <div className='lg:hidden flex justify-end mb-4'>
+                <ThemeToggle />
+              </div>
+
+              {/* Main Content Tabs */}
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className='space-y-6'
+              >
+                <TabsList className='grid w-full grid-cols-2 lg:grid-cols-14'>
+                  <TabsTrigger value='dashboard'>Dashboard</TabsTrigger>
+                  <TabsTrigger value='transactions'>Transactions</TabsTrigger>
+                  <TabsTrigger value='ai-insights'>AI Insights</TabsTrigger>
+                  <TabsTrigger value='budgets'>Budgets</TabsTrigger>
+                  <TabsTrigger value='goals'>Goals</TabsTrigger>
+                  <TabsTrigger value='analytics'>Analytics</TabsTrigger>
+                  <TabsTrigger value='reports'>Reports</TabsTrigger>
+                  <TabsTrigger value='reminders'>Reminders</TabsTrigger>
+                  <TabsTrigger value='profile'>Profile</TabsTrigger>
+                  <TabsTrigger value='admin'>Admin</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value='dashboard' className='space-y-6'>
+                  <SimulationDashboard />
+                </TabsContent>
+
+                <TabsContent value='transactions' className='space-y-6'>
+                  <TransactionsPage />
+                </TabsContent>
+
+                <TabsContent value='ai-insights' className='space-y-6'>
+                  <AIInsightsDashboard />
+                </TabsContent>
+
+                <TabsContent value='budgets' className='space-y-6'>
+                  <BudgetOverview utilization={75} />
+                </TabsContent>
+
+                <TabsContent value='goals' className='space-y-6'>
+                  <div className='text-center py-12'>
+                    <h2 className='text-2xl font-bold mb-4'>Financial Goals</h2>
+                    <p className='text-muted-foreground mb-6'>
+                      Set and track your financial goals
+                    </p>
+                    <Button>Create New Goal</Button>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value='analytics' className='space-y-6'>
+                  <AnalyticsDashboard />
+                </TabsContent>
+
+                <TabsContent value='reports' className='space-y-6'>
+                  <EnhancedReportsDashboard />
+                </TabsContent>
+
+                <TabsContent value='reminders' className='space-y-6'>
+                  <RecurringPaymentReminder />
+                </TabsContent>
+
+                <TabsContent value='profile' className='space-y-6'>
+                  <UserProfile />
+                </TabsContent>
+
+                <TabsContent value='admin' className='space-y-6'>
+                  <AdminDashboard />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }
 

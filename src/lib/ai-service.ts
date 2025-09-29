@@ -105,42 +105,79 @@ export class AIService {
 
   static async categorizeTransaction(
     description: string,
-    amount: number
+    amount: number,
+    userHistory?: Array<{
+      description: string;
+      category: string;
+      tags: string[];
+      userCorrected?: boolean;
+    }>
   ): Promise<{
     category: string;
     confidence: number;
     tags: string[];
+    reasoning: string;
   }> {
     try {
+      const historyContext = userHistory
+        ? `
+        
+        User's previous categorizations (learn from these):
+        ${userHistory
+          .slice(-10)
+          .map(
+            h =>
+              `- "${h.description}" → ${h.category} [${h.tags.join(', ')}]${
+                h.userCorrected ? ' (user corrected)' : ''
+              }`
+          )
+          .join('\n')}`
+        : '';
+
       const prompt = `
-        Categorize this transaction:
+        Categorize this transaction with high accuracy:
         Description: "${description}"
-        Amount: $${amount}
+        Amount: $${amount}${historyContext}
+        
+        Use these categories:
+        - Food & Dining (restaurants, groceries, food delivery)
+        - Transportation (gas, public transit, rideshare, car maintenance)
+        - Housing (rent, mortgage, utilities, home improvement)
+        - Entertainment (movies, games, subscriptions, events)
+        - Utilities (electricity, water, internet, phone)
+        - Healthcare (medical, pharmacy, insurance)
+        - Shopping (clothing, electronics, general retail)
+        - Education (courses, books, school supplies)
+        - Travel (flights, hotels, vacation expenses)
+        - Business (work expenses, professional services)
+        - Investment (stocks, crypto, savings)
+        - Other (miscellaneous expenses)
         
         Return JSON:
         {
-          "category": "Food|Transportation|Housing|Entertainment|Utilities|Healthcare|Shopping|Other",
+          "category": "Food & Dining",
           "confidence": 0.95,
-          "tags": ["grocery", "supermarket"]
+          "tags": ["grocery", "supermarket", "organic"],
+          "reasoning": "This appears to be a grocery store purchase based on the description and amount"
         }
       `;
 
       const openai = getOpenAIClient();
       const completion = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
             content:
-              'You are a transaction categorization AI. Always respond with valid JSON only.',
+              'You are an expert transaction categorization AI. Learn from user corrections and provide accurate categorizations with detailed reasoning. Always respond with valid JSON only.',
           },
           {
             role: 'user',
             content: prompt,
           },
         ],
-        temperature: 0.3,
-        max_tokens: 200,
+        temperature: 0.2,
+        max_tokens: 300,
       });
 
       const response = completion.choices[0]?.message?.content;
@@ -153,6 +190,7 @@ export class AIService {
         category: 'Other',
         confidence: 0,
         tags: [],
+        reasoning: 'Unable to categorize due to error',
       };
     }
   }
@@ -270,6 +308,190 @@ export class AIService {
         trends: [],
         anomalies: [],
         recommendations: [],
+      };
+    }
+  }
+
+  static async generateSmartAlerts(
+    currentSpending: Record<string, number>,
+    budgets: Record<string, number>,
+    previousMonthSpending: Record<string, number>,
+    income: number
+  ): Promise<{
+    alerts: Array<{
+      type: 'warning' | 'success' | 'info';
+      title: string;
+      message: string;
+      priority: 'low' | 'medium' | 'high';
+      category?: string;
+      amount?: number;
+      percentage?: number;
+    }>;
+  }> {
+    try {
+      const prompt = `
+        Generate smart alerts based on this financial data:
+        
+        Current month spending by category:
+        ${Object.entries(currentSpending)
+          .map(([cat, amount]) => `- ${cat}: $${amount}`)
+          .join('\n')}
+        
+        Budget limits:
+        ${Object.entries(budgets)
+          .map(([cat, amount]) => `- ${cat}: $${amount}`)
+          .join('\n')}
+        
+        Previous month spending:
+        ${Object.entries(previousMonthSpending)
+          .map(([cat, amount]) => `- ${cat}: $${amount}`)
+          .join('\n')}
+        
+        Monthly income: $${income}
+        
+        Generate relevant alerts like:
+        - Budget warnings (when close to or over budget)
+        - Savings achievements (when saved more than last month)
+        - Spending trends (unusual increases/decreases)
+        - Opportunities (potential savings)
+        
+        Return JSON:
+        {
+          "alerts": [
+            {
+              "type": "warning",
+              "title": "Food Budget Alert",
+              "message": "You're at 85% of your Food budget ($510/$600)",
+              "priority": "medium",
+              "category": "Food",
+              "amount": 510,
+              "percentage": 85
+            },
+            {
+              "type": "success", 
+              "title": "Savings Achievement",
+              "message": "You saved $150 more than last month!",
+              "priority": "low",
+              "amount": 150
+            }
+          ]
+        }
+      `;
+
+      const openai = getOpenAIClient();
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4',
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are a smart financial alert AI. Generate helpful, actionable alerts for budget management and financial health. Always respond with valid JSON only.',
+          },
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        temperature: 0.3,
+        max_tokens: 800,
+      });
+
+      const response = completion.choices[0]?.message?.content;
+      if (!response) throw new Error('No response from AI');
+
+      return JSON.parse(response);
+    } catch (error) {
+      console.error('Error generating smart alerts:', error);
+      return {
+        alerts: [],
+      };
+    }
+  }
+
+  static async generateExpenseForecast(
+    historicalData: Array<{
+      month: string;
+      spending: Record<string, number>;
+      total: number;
+    }>,
+    currentMonth: string
+  ): Promise<{
+    nextMonthForecast: Record<string, number>;
+    totalForecast: number;
+    confidence: number;
+    trends: Array<{
+      category: string;
+      trend: 'increasing' | 'decreasing' | 'stable';
+      percentageChange: number;
+    }>;
+  }> {
+    try {
+      const prompt = `
+        Predict next month's expenses based on historical data:
+        
+        Historical spending by month:
+        ${historicalData
+          .map(
+            h =>
+              `${h.month}: Total $${h.total} - ${Object.entries(h.spending)
+                .map(([cat, amount]) => `${cat}: $${amount}`)
+                .join(', ')}`
+          )
+          .join('\n')}
+        
+        Current month: ${currentMonth}
+        
+        Analyze trends and predict next month's spending by category.
+        Consider seasonality, recent trends, and spending patterns.
+        
+        Return JSON:
+        {
+          "nextMonthForecast": {
+            "Food": 650,
+            "Transportation": 450,
+            "Entertainment": 200
+          },
+          "totalForecast": 2300,
+          "confidence": 0.78,
+          "trends": [
+            {
+              "category": "Food",
+              "trend": "increasing",
+              "percentageChange": 8.5
+            }
+          ]
+        }
+      `;
+
+      const openai = getOpenAIClient();
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4',
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are a financial forecasting AI. Analyze spending patterns and predict future expenses with confidence levels. Always respond with valid JSON only.',
+          },
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        temperature: 0.2,
+        max_tokens: 600,
+      });
+
+      const response = completion.choices[0]?.message?.content;
+      if (!response) throw new Error('No response from AI');
+
+      return JSON.parse(response);
+    } catch (error) {
+      console.error('Error generating expense forecast:', error);
+      return {
+        nextMonthForecast: {},
+        totalForecast: 0,
+        confidence: 0,
+        trends: [],
       };
     }
   }

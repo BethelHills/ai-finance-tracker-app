@@ -26,6 +26,8 @@ const navigation = [
   { name: 'Goals', tab: 'goals', icon: TrendingUp },
   { name: 'Analytics', tab: 'analytics', icon: BarChart3 },
   { name: 'Reports', tab: 'reports', icon: PieChart },
+  { name: 'Reminders', tab: 'reminders', icon: Bell },
+  { name: 'Profile', tab: 'profile', icon: User },
   { name: 'Admin', tab: 'admin', icon: Settings },
 ];
 
