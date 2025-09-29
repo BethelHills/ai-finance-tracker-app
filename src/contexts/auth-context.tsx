@@ -83,7 +83,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string, userData?: any) => {
     try {
       setLoading(true);
+      console.log('=== SIGNUP DEBUG START ===');
       console.log('Attempting signup with:', { email, userData });
+      console.log('Supabase client:', supabase);
+      console.log('Environment check:', {
+        url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      });
 
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -93,19 +99,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       });
 
-      console.log('Signup response:', { data, error });
+      console.log('=== SIGNUP RESPONSE ===');
+      console.log('Data:', data);
+      console.log('Error:', error);
+      console.log('=== SIGNUP DEBUG END ===');
 
       if (error) {
         console.error('Supabase signup error:', error);
-        throw error;
+        return {
+          data: null,
+          error: {
+            message: error.message || 'Signup failed',
+            details: error,
+          },
+        };
       }
 
       return { data, error: null };
     } catch (error: any) {
-      console.error('Sign up error:', error);
+      console.error('=== SIGNUP CATCH ERROR ===');
+      console.error('Error type:', typeof error);
+      console.error('Error message:', error?.message);
+      console.error('Full error:', error);
+      console.error('=== SIGNUP CATCH END ===');
+      
       return {
         data: null,
-        error: error || { message: 'Unknown error occurred' },
+        error: {
+          message: error?.message || 'Unknown error occurred',
+          details: error,
+        },
       };
     } finally {
       setLoading(false);

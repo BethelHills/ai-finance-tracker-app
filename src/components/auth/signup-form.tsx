@@ -75,8 +75,10 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
     });
 
     if (error) {
-      setError(error.message);
+      console.error('Signup error details:', error);
+      setError(error.message || 'Failed to create account. Please try again.');
     } else {
+      console.log('Signup successful:', data);
       setSuccess(true);
       onSuccess?.();
     }
