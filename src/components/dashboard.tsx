@@ -107,7 +107,7 @@ export function Dashboard() {
       </div>
 
       {/* Key Metrics */}
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
         <Card>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
             <CardTitle className='text-sm font-medium'>Total Balance</CardTitle>
@@ -180,7 +180,7 @@ export function Dashboard() {
       </div>
 
       {/* Main Content Grid */}
-      <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
+      <div className='grid gap-6 sm:grid-cols-1 lg:grid-cols-3'>
         {/* AI Insights */}
         <div className='lg:col-span-2'>
           <AIInsights insights={mockData.aiInsights} />

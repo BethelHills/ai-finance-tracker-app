@@ -184,7 +184,7 @@ export function EnhancedDashboard() {
       </div>
 
       {/* Enhanced Key Metrics */}
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
         <Card className='border-l-4 border-l-green-500'>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
             <CardTitle className='text-sm font-medium'>Total Balance</CardTitle>
@@ -252,7 +252,7 @@ export function EnhancedDashboard() {
       </div>
 
       {/* Secondary Metrics */}
-      <div className='grid gap-4 md:grid-cols-3'>
+      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
         <Card>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
             <CardTitle className='text-sm font-medium'>Credit Score</CardTitle>
@@ -294,7 +294,7 @@ export function EnhancedDashboard() {
       </div>
 
       {/* Main Content Grid */}
-      <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
+      <div className='grid gap-6 sm:grid-cols-1 lg:grid-cols-3'>
         {/* AI Insights */}
         <div className='lg:col-span-2'>
           <AIInsights insights={mockData.aiInsights} />
@@ -323,7 +323,7 @@ export function EnhancedDashboard() {
           <CardDescription>Common tasks and shortcuts</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className='grid gap-4 md:grid-cols-4'>
+          <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
             <Button
               variant='outline'
               className='h-20 flex flex-col space-y-2'

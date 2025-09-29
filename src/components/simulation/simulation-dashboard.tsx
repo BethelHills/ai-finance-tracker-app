@@ -65,7 +65,7 @@ export function SimulationDashboard() {
       </div>
 
       {/* Main Financial Overview Cards */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
         {/* Balance Card */}
         <Card className='border-l-4 border-l-blue-500'>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
@@ -150,23 +150,23 @@ export function SimulationDashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
             {accounts.map(account => (
-              <div key={account.id} className='p-4 border rounded-lg'>
+              <div key={account.id} className='p-4 border rounded-lg hover:shadow-md transition-shadow'>
                 <div className='flex items-center justify-between mb-2'>
-                  <h4 className='font-medium'>{account.name}</h4>
-                  <Badge variant={account.isActive ? 'default' : 'secondary'}>
+                  <h4 className='font-medium text-sm'>{account.name}</h4>
+                  <Badge variant={account.isActive ? 'default' : 'secondary'} className='text-xs'>
                     {account.isActive ? 'Active' : 'Inactive'}
                   </Badge>
                 </div>
-                <div className='text-2xl font-bold'>
+                <div className='text-xl font-bold mb-1'>
                   {account.currency} {account.balance.toLocaleString()}
                 </div>
-                <div className='text-sm text-muted-foreground'>
+                <div className='text-xs text-muted-foreground mb-1'>
                   {account.type.charAt(0).toUpperCase() + account.type.slice(1)}{' '}
                   • {account.provider}
                 </div>
-                <div className='text-xs text-muted-foreground mt-1'>
+                <div className='text-xs text-muted-foreground'>
                   Updated: {account.lastUpdated.toLocaleDateString()}
                 </div>
               </div>
@@ -185,15 +185,15 @@ export function SimulationDashboard() {
           <CardDescription>Your latest financial activity</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className='space-y-4'>
+          <div className='space-y-3'>
             {recentTransactions.map(transaction => (
               <div
                 key={transaction.id}
-                className='flex items-center justify-between p-3 border rounded-lg'
+                className='flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors'
               >
-                <div className='flex items-center space-x-3'>
+                <div className='flex items-center space-x-3 flex-1 min-w-0'>
                   <div
-                    className={`w-2 h-2 rounded-full ${
+                    className={`w-2 h-2 rounded-full flex-shrink-0 ${
                       transaction.type === 'income'
                         ? 'bg-green-500'
                         : transaction.type === 'expense'
@@ -201,21 +201,21 @@ export function SimulationDashboard() {
                           : 'bg-blue-500'
                     }`}
                   />
-                  <div>
-                    <h4 className='font-medium'>{transaction.description}</h4>
-                    <p className='text-sm text-muted-foreground'>
+                  <div className='flex-1 min-w-0'>
+                    <h4 className='font-medium text-sm truncate'>{transaction.description}</h4>
+                    <p className='text-xs text-muted-foreground truncate'>
                       {transaction.category} •{' '}
                       {transaction.date.toLocaleDateString()}
                     </p>
                   </div>
                 </div>
-                <div className='flex items-center space-x-2'>
+                <div className='flex items-center space-x-2 flex-shrink-0 ml-3'>
                   <div
                     className={`text-right ${
                       transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
                     }`}
                   >
-                    <div className='font-medium'>
+                    <div className='font-medium text-sm'>
                       {transaction.amount > 0 ? '+' : ''}$
                       {Math.abs(transaction.amount).toFixed(2)}
                     </div>
@@ -227,6 +227,7 @@ export function SimulationDashboard() {
                             ? 'secondary'
                             : 'destructive'
                       }
+                      className='text-xs'
                     >
                       {transaction.status}
                     </Badge>
@@ -245,28 +246,28 @@ export function SimulationDashboard() {
           <CardDescription>Your spending breakdown this month</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className='space-y-3'>
+          <div className='space-y-4'>
             {topCategories.map((category, index) => (
               <div
                 key={category.name}
                 className='flex items-center justify-between'
               >
-                <div className='flex items-center space-x-3'>
-                  <div className='w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-xs font-medium'>
+                <div className='flex items-center space-x-3 flex-1 min-w-0'>
+                  <div className='w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0'>
                     {index + 1}
                   </div>
-                  <span className='font-medium'>{category.name}</span>
+                  <span className='font-medium text-sm truncate'>{category.name}</span>
                 </div>
-                <div className='flex items-center space-x-3'>
-                  <div className='w-32 bg-gray-200 rounded-full h-2'>
+                <div className='flex items-center space-x-3 flex-shrink-0 ml-3'>
+                  <div className='w-24 bg-gray-200 rounded-full h-2'>
                     <div
-                      className='bg-blue-600 h-2 rounded-full'
+                      className='bg-blue-600 h-2 rounded-full transition-all duration-300'
                       style={{
                         width: `${(Number(category.amount) / Number(topCategories[0].amount)) * 100}%`,
                       }}
                     />
                   </div>
-                  <span className='font-medium'>
+                  <span className='font-medium text-sm min-w-0'>
                     ${Number(category.amount).toFixed(2)}
                   </span>
                 </div>

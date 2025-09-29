@@ -63,7 +63,7 @@ function MainApp() {
           </div>
 
           <main className='flex-1 p-4 lg:p-6'>
-            <div className='max-w-7xl mx-auto space-y-6'>
+            <div className='max-w-7xl mx-auto space-y-6 w-full'>
               {/* Mobile Theme Toggle */}
               <div className='lg:hidden flex justify-end mb-4'>
                 <ThemeToggle />
@@ -75,7 +75,7 @@ function MainApp() {
                 onValueChange={setActiveTab}
                 className='space-y-6'
               >
-                <TabsList className='grid w-full grid-cols-2 lg:grid-cols-14'>
+                <TabsList className='grid w-full grid-cols-2 lg:grid-cols-10 gap-1'>
                   <TabsTrigger value='dashboard'>Dashboard</TabsTrigger>
                   <TabsTrigger value='transactions'>Transactions</TabsTrigger>
                   <TabsTrigger value='ai-insights'>AI Insights</TabsTrigger>
