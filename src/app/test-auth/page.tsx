@@ -18,14 +18,14 @@ export default function TestAuthPage() {
 
     try {
       const supabase = createClient();
-      
+
       // Test connection
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { full_name: 'Test User' }
-        }
+          data: { full_name: 'Test User' },
+        },
       });
 
       setResult({ data, error });
@@ -37,40 +37,40 @@ export default function TestAuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4'>
+      <Card className='w-full max-w-md'>
         <CardHeader>
           <CardTitle>Supabase Auth Test</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className='space-y-4'>
           <div>
-            <label className="block text-sm font-medium mb-2">Email</label>
+            <label className='block text-sm font-medium mb-2'>Email</label>
             <Input
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              type="email"
+              onChange={e => setEmail(e.target.value)}
+              type='email'
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Password</label>
+            <label className='block text-sm font-medium mb-2'>Password</label>
             <Input
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
+              onChange={e => setPassword(e.target.value)}
+              type='password'
             />
           </div>
-          <Button 
-            onClick={testSupabaseConnection} 
+          <Button
+            onClick={testSupabaseConnection}
             disabled={loading}
-            className="w-full"
+            className='w-full'
           >
             {loading ? 'Testing...' : 'Test Supabase Connection'}
           </Button>
-          
+
           {result && (
-            <div className="mt-4 p-4 bg-gray-100 rounded">
-              <h3 className="font-medium mb-2">Result:</h3>
-              <pre className="text-xs overflow-auto">
+            <div className='mt-4 p-4 bg-gray-100 rounded'>
+              <h3 className='font-medium mb-2'>Result:</h3>
+              <pre className='text-xs overflow-auto'>
                 {JSON.stringify(result, null, 2)}
               </pre>
             </div>

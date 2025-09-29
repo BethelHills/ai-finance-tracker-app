@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       console.log('Attempting signup with:', { email, userData });
-      
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -99,11 +99,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Supabase signup error:', error);
         throw error;
       }
-      
+
       return { data, error: null };
     } catch (error: any) {
       console.error('Sign up error:', error);
-      return { data: null, error: error || { message: 'Unknown error occurred' } };
+      return {
+        data: null,
+        error: error || { message: 'Unknown error occurred' },
+      };
     } finally {
       setLoading(false);
     }
