@@ -1,3 +1,5 @@
+'use client';
+
 import SimpleSecureLogin from '@/components/auth/simple-secure-login';
 
 export default function SimpleLoginPage() {
