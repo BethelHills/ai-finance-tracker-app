@@ -39,9 +39,10 @@ function MainApp() {
   const { isSimulationMode } = useSimulation();
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  if (!isSimulationMode) {
-    return <SimulationLandingPage />;
-  }
+  // For now, let's disable simulation mode check to focus on authentication
+  // if (!isSimulationMode) {
+  //   return <SimulationLandingPage />;
+  // }
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
