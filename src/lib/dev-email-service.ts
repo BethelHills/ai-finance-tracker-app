@@ -56,8 +56,22 @@ class DevEmailService {
   }
 
   private extractOTPFromHTML(html: string): string {
-    const match = html.match(/<div class="otp-number">(\d+)<\/div>/);
-    return match ? match[1] : 'Not found';
+    // Try multiple patterns to extract OTP
+    const patterns = [
+      /<div style="[^"]*font-family: monospace[^"]*">(\d+)<\/div>/,
+      /<div class="otp-number">(\d+)<\/div>/,
+      /font-family: monospace[^>]*>(\d+)</,
+      />(\d{6})</
+    ];
+    
+    for (const pattern of patterns) {
+      const match = html.match(pattern);
+      if (match) {
+        return match[1];
+      }
+    }
+    
+    return 'Not found';
   }
 
   private generateOTPEmailHTML(otp: string, type: 'signup' | 'login'): string {

@@ -61,12 +61,22 @@ class OTPService {
         type,
       });
 
+
       // Send OTP via email with smart fallback
       console.log(`📧 Sending OTP to ${email}: ${otp}`);
       console.log(`⏰ Expires at: ${new Date(expiresAt).toLocaleString()}`);
 
       // Check if email credentials are configured
-      const hasEmailConfig = process.env.EMAIL_USER && process.env.EMAIL_PASSWORD;
+      const hasEmailConfig = process.env.EMAIL_USER && 
+                            process.env.EMAIL_PASSWORD && 
+                            process.env.EMAIL_USER !== 'your-email@gmail.com' &&
+                            process.env.EMAIL_PASSWORD !== 'your-app-password';
+      
+      console.log('📧 Email config check:', {
+        hasEmailConfig,
+        emailUser: process.env.EMAIL_USER ? 'Set' : 'Not set',
+        emailPassword: process.env.EMAIL_PASSWORD ? 'Set' : 'Not set'
+      });
       
       let emailResult;
       
@@ -76,6 +86,7 @@ class OTPService {
         emailResult = await devEmailService.sendOTPEmail(email, otp, type);
       } else {
         // Try fast email service first, then fallback to regular service
+        console.log('📧 Using real email service with credentials');
         emailResult = await fastEmailService.sendOTPEmail(email, otp, type);
         
         if (!emailResult.success) {
