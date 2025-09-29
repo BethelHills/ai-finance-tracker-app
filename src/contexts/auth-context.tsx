@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Error message:', error?.message);
       console.error('Full error:', error);
       console.error('=== SIGNUP CATCH END ===');
-      
+
       return {
         data: null,
         error: {
