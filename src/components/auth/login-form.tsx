@@ -46,13 +46,24 @@ export function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
     setIsSendingOTP(true);
 
     try {
-      // Send OTP for login verification
-      const otpResult = await otpService.sendOTP(formData.email, 'login');
-      
-      if (otpResult.success) {
+      // Send OTP via API
+      const response = await fetch('/api/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          type: 'login',
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
         setShowOTP(true);
       } else {
-        setError(otpResult.error || 'Failed to send verification code');
+        setError(result.error || 'Failed to send verification code');
       }
     } catch (err) {
       console.error('💥 OTP sending failed:', err);
@@ -64,10 +75,22 @@ export function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
 
   const handleOTPVerify = async (otp: string) => {
     try {
-      const otpResult = await otpService.verifyOTP(formData.email, otp);
-      
-      if (!otpResult.success) {
-        return { success: false, error: otpResult.error };
+      // Verify OTP via API
+      const response = await fetch('/api/verify-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          otp: otp,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        return { success: false, error: result.error };
       }
 
       // OTP verified, now sign in
@@ -80,13 +103,27 @@ export function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
         return { success: true };
       }
     } catch (err) {
-      return { success: false, error: 'An unexpected error occurred. Please try again.' };
+      return {
+        success: false,
+        error: 'An unexpected error occurred. Please try again.',
+      };
     }
   };
 
   const handleOTPResend = async () => {
     try {
-      const result = await otpService.sendOTP(formData.email, 'login');
+      const response = await fetch('/api/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          type: 'login',
+        }),
+      });
+
+      const result = await response.json();
       return result;
     } catch (err) {
       return { success: false, error: 'Failed to resend code' };
@@ -106,7 +143,7 @@ export function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
         onVerify={handleOTPVerify}
         onResend={handleOTPResend}
         onBack={() => setShowOTP(false)}
-        type="login"
+        type='login'
       />
     );
   }
@@ -183,11 +220,17 @@ export function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
             </Link>
           </div>
 
-          <Button type='submit' className='w-full' disabled={loading || isSendingOTP}>
+          <Button
+            type='submit'
+            className='w-full'
+            disabled={loading || isSendingOTP}
+          >
             {loading || isSendingOTP ? (
               <>
                 <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                {isSendingOTP ? 'Sending verification code...' : 'Signing in...'}
+                {isSendingOTP
+                  ? 'Sending verification code...'
+                  : 'Signing in...'}
               </>
             ) : (
               'Sign in'

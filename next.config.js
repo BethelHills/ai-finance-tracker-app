@@ -2,7 +2,11 @@
 const nextConfig = {
   // Enable experimental features
   experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
+    serverComponentsExternalPackages: [
+      '@prisma/client',
+      'bcryptjs',
+      'nodemailer',
+    ],
   },
 
   // Image optimization
@@ -67,6 +71,8 @@ const nextConfig = {
         fs: false,
         net: false,
         tls: false,
+        dns: false,
+        child_process: false,
       };
     }
     return config;

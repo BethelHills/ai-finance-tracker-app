@@ -152,10 +152,16 @@ export function SimulationDashboard() {
         <CardContent>
           <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
             {accounts.map(account => (
-              <div key={account.id} className='p-4 border rounded-lg hover:shadow-md transition-shadow'>
+              <div
+                key={account.id}
+                className='p-4 border rounded-lg hover:shadow-md transition-shadow'
+              >
                 <div className='flex items-center justify-between mb-2'>
                   <h4 className='font-medium text-sm'>{account.name}</h4>
-                  <Badge variant={account.isActive ? 'default' : 'secondary'} className='text-xs'>
+                  <Badge
+                    variant={account.isActive ? 'default' : 'secondary'}
+                    className='text-xs'
+                  >
                     {account.isActive ? 'Active' : 'Inactive'}
                   </Badge>
                 </div>
@@ -202,7 +208,9 @@ export function SimulationDashboard() {
                     }`}
                   />
                   <div className='flex-1 min-w-0'>
-                    <h4 className='font-medium text-sm truncate'>{transaction.description}</h4>
+                    <h4 className='font-medium text-sm truncate'>
+                      {transaction.description}
+                    </h4>
                     <p className='text-xs text-muted-foreground truncate'>
                       {transaction.category} •{' '}
                       {transaction.date.toLocaleDateString()}
@@ -256,7 +264,9 @@ export function SimulationDashboard() {
                   <div className='w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0'>
                     {index + 1}
                   </div>
-                  <span className='font-medium text-sm truncate'>{category.name}</span>
+                  <span className='font-medium text-sm truncate'>
+                    {category.name}
+                  </span>
                 </div>
                 <div className='flex items-center space-x-3 flex-shrink-0 ml-3'>
                   <div className='w-24 bg-gray-200 rounded-full h-2'>

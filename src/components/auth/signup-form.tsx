@@ -74,7 +74,7 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
     setSuccess(false);
 
     console.log('🔄 Form submitted, validating...');
-    
+
     if (!validateForm()) {
       console.log('❌ Form validation failed');
       return;
@@ -84,13 +84,24 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
     setIsSendingOTP(true);
 
     try {
-      // Send OTP first
-      const otpResult = await otpService.sendOTP(formData.email, 'signup');
-      
-      if (otpResult.success) {
+      // Send OTP via API
+      const response = await fetch('/api/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          type: 'signup',
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
         setShowOTP(true);
       } else {
-        setError(otpResult.error || 'Failed to send verification code');
+        setError(result.error || 'Failed to send verification code');
       }
     } catch (err) {
       console.error('💥 OTP sending failed:', err);
@@ -102,10 +113,22 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
 
   const handleOTPVerify = async (otp: string) => {
     try {
-      const otpResult = await otpService.verifyOTP(formData.email, otp);
-      
-      if (!otpResult.success) {
-        return { success: false, error: otpResult.error };
+      // Verify OTP via API
+      const response = await fetch('/api/verify-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          otp: otp,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        return { success: false, error: result.error };
       }
 
       // OTP verified, now create the account
@@ -115,7 +138,10 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
 
       if (error) {
         console.error('💥 Signup error:', error);
-        return { success: false, error: error.message || 'Failed to create account. Please try again.' };
+        return {
+          success: false,
+          error: error.message || 'Failed to create account. Please try again.',
+        };
       } else {
         console.log('🎉 Signup successful:', data);
         setSuccess(true);
@@ -127,13 +153,27 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
       }
     } catch (err) {
       console.error('💥 Signup exception:', err);
-      return { success: false, error: 'An unexpected error occurred. Please try again.' };
+      return {
+        success: false,
+        error: 'An unexpected error occurred. Please try again.',
+      };
     }
   };
 
   const handleOTPResend = async () => {
     try {
-      const result = await otpService.sendOTP(formData.email, 'signup');
+      const response = await fetch('/api/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          type: 'signup',
+        }),
+      });
+
+      const result = await response.json();
       return result;
     } catch (err) {
       return { success: false, error: 'Failed to resend code' };
@@ -153,7 +193,7 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
         onVerify={handleOTPVerify}
         onResend={handleOTPResend}
         onBack={() => setShowOTP(false)}
-        type="signup"
+        type='signup'
       />
     );
   }
@@ -172,7 +212,8 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
         <CardContent>
           <Alert>
             <AlertDescription>
-              Your account has been created and you're now signed in. You can start managing your finances right away.
+              Your account has been created and you're now signed in. You can
+              start managing your finances right away.
             </AlertDescription>
           </Alert>
           <div className='text-center mt-4'>
@@ -299,17 +340,23 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
             </div>
           </div>
 
-          <Button type='submit' className='w-full' disabled={loading || isSendingOTP}>
+          <Button
+            type='submit'
+            className='w-full'
+            disabled={loading || isSendingOTP}
+          >
             {loading || isSendingOTP ? (
               <>
                 <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                {isSendingOTP ? 'Sending verification code...' : 'Creating account...'}
+                {isSendingOTP
+                  ? 'Sending verification code...'
+                  : 'Creating account...'}
               </>
             ) : (
               'Create account'
             )}
           </Button>
-          
+
           {loading && (
             <div className='text-center text-sm text-gray-600'>
               <p>Setting up your secure account...</p>

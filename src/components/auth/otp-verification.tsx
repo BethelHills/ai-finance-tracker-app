@@ -60,7 +60,7 @@ export function OTPVerification({
 
   const handleInputChange = (index: number, value: string) => {
     if (value.length > 1) return; // Only allow single digit
-    
+
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
@@ -81,7 +81,7 @@ export function OTPVerification({
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').replace(/\D/g, '');
-    
+
     if (pastedData.length === 6) {
       const newOtp = pastedData.split('');
       setOtp(newOtp);
@@ -146,7 +146,8 @@ export function OTPVerification({
             Email Verified!
           </CardTitle>
           <CardDescription>
-            Your email has been successfully verified. You can now access your account.
+            Your email has been successfully verified. You can now access your
+            account.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -166,9 +167,7 @@ export function OTPVerification({
         <div className='mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4'>
           <Mail className='h-8 w-8 text-blue-600' />
         </div>
-        <CardTitle className='text-2xl font-bold'>
-          Verify Your Email
-        </CardTitle>
+        <CardTitle className='text-2xl font-bold'>Verify Your Email</CardTitle>
         <CardDescription>
           We've sent a 6-digit verification code to
           <br />
@@ -191,7 +190,9 @@ export function OTPVerification({
             {otp.map((digit, index) => (
               <Input
                 key={index}
-                ref={el => (inputRefs.current[index] = el)}
+                ref={el => {
+                  inputRefs.current[index] = el;
+                }}
                 type='text'
                 inputMode='numeric'
                 pattern='[0-9]*'
@@ -232,11 +233,7 @@ export function OTPVerification({
           </Button>
 
           <div className='flex space-x-2'>
-            <Button
-              variant='outline'
-              onClick={onBack}
-              className='flex-1'
-            >
+            <Button variant='outline' onClick={onBack} className='flex-1'>
               <ArrowLeft className='mr-2 h-4 w-4' />
               Back
             </Button>
