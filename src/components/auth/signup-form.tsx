@@ -15,6 +15,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react';
 import Link from 'next/link';
+import { OTPVerification } from './otp-verification';
+import { otpService } from '@/lib/otp-service';
 
 interface SignupFormProps {
   onSuccess?: () => void;
@@ -33,6 +35,8 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [showOTP, setShowOTP] = useState(false);
+  const [isSendingOTP, setIsSendingOTP] = useState(false);
 
   const validateForm = () => {
     if (
@@ -76,16 +80,42 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
       return;
     }
 
-    console.log('✅ Form valid, attempting signup...');
+    console.log('✅ Form valid, sending OTP...');
+    setIsSendingOTP(true);
 
     try {
+      // Send OTP first
+      const otpResult = await otpService.sendOTP(formData.email, 'signup');
+      
+      if (otpResult.success) {
+        setShowOTP(true);
+      } else {
+        setError(otpResult.error || 'Failed to send verification code');
+      }
+    } catch (err) {
+      console.error('💥 OTP sending failed:', err);
+      setError('Failed to send verification code. Please try again.');
+    } finally {
+      setIsSendingOTP(false);
+    }
+  };
+
+  const handleOTPVerify = async (otp: string) => {
+    try {
+      const otpResult = await otpService.verifyOTP(formData.email, otp);
+      
+      if (!otpResult.success) {
+        return { success: false, error: otpResult.error };
+      }
+
+      // OTP verified, now create the account
       const { data, error } = await signUp(formData.email, formData.password, {
         full_name: formData.fullName,
       });
 
       if (error) {
         console.error('💥 Signup error:', error);
-        setError(error.message || 'Failed to create account. Please try again.');
+        return { success: false, error: error.message || 'Failed to create account. Please try again.' };
       } else {
         console.log('🎉 Signup successful:', data);
         setSuccess(true);
@@ -93,10 +123,20 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
         setTimeout(() => {
           onSuccess?.();
         }, 2000);
+        return { success: true };
       }
     } catch (err) {
       console.error('💥 Signup exception:', err);
-      setError('An unexpected error occurred. Please try again.');
+      return { success: false, error: 'An unexpected error occurred. Please try again.' };
+    }
+  };
+
+  const handleOTPResend = async () => {
+    try {
+      const result = await otpService.sendOTP(formData.email, 'signup');
+      return result;
+    } catch (err) {
+      return { success: false, error: 'Failed to resend code' };
     }
   };
 
@@ -105,6 +145,18 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
     setFormData(prev => ({ ...prev, [name]: value }));
     if (error) setError(null);
   };
+
+  if (showOTP) {
+    return (
+      <OTPVerification
+        email={formData.email}
+        onVerify={handleOTPVerify}
+        onResend={handleOTPResend}
+        onBack={() => setShowOTP(false)}
+        type="signup"
+      />
+    );
+  }
 
   if (success) {
     return (
@@ -247,11 +299,11 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
             </div>
           </div>
 
-          <Button type='submit' className='w-full' disabled={loading}>
-            {loading ? (
+          <Button type='submit' className='w-full' disabled={loading || isSendingOTP}>
+            {loading || isSendingOTP ? (
               <>
                 <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                Creating account...
+                {isSendingOTP ? 'Sending verification code...' : 'Creating account...'}
               </>
             ) : (
               'Create account'

@@ -15,6 +15,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
 import Link from 'next/link';
+import { OTPVerification } from './otp-verification';
+import { otpService } from '@/lib/otp-service';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -29,6 +31,8 @@ export function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showOTP, setShowOTP] = useState(false);
+  const [isSendingOTP, setIsSendingOTP] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,12 +43,53 @@ export function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
       return;
     }
 
-    const { data, error } = await signIn(formData.email, formData.password);
+    setIsSendingOTP(true);
 
-    if (error) {
-      setError(error.message);
-    } else {
-      onSuccess?.();
+    try {
+      // Send OTP for login verification
+      const otpResult = await otpService.sendOTP(formData.email, 'login');
+      
+      if (otpResult.success) {
+        setShowOTP(true);
+      } else {
+        setError(otpResult.error || 'Failed to send verification code');
+      }
+    } catch (err) {
+      console.error('💥 OTP sending failed:', err);
+      setError('Failed to send verification code. Please try again.');
+    } finally {
+      setIsSendingOTP(false);
+    }
+  };
+
+  const handleOTPVerify = async (otp: string) => {
+    try {
+      const otpResult = await otpService.verifyOTP(formData.email, otp);
+      
+      if (!otpResult.success) {
+        return { success: false, error: otpResult.error };
+      }
+
+      // OTP verified, now sign in
+      const { data, error } = await signIn(formData.email, formData.password);
+
+      if (error) {
+        return { success: false, error: error.message };
+      } else {
+        onSuccess?.();
+        return { success: true };
+      }
+    } catch (err) {
+      return { success: false, error: 'An unexpected error occurred. Please try again.' };
+    }
+  };
+
+  const handleOTPResend = async () => {
+    try {
+      const result = await otpService.sendOTP(formData.email, 'login');
+      return result;
+    } catch (err) {
+      return { success: false, error: 'Failed to resend code' };
     }
   };
 
@@ -53,6 +98,18 @@ export function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
     setFormData(prev => ({ ...prev, [name]: value }));
     if (error) setError(null);
   };
+
+  if (showOTP) {
+    return (
+      <OTPVerification
+        email={formData.email}
+        onVerify={handleOTPVerify}
+        onResend={handleOTPResend}
+        onBack={() => setShowOTP(false)}
+        type="login"
+      />
+    );
+  }
 
   return (
     <Card className='w-full max-w-md mx-auto'>
@@ -126,11 +183,11 @@ export function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
             </Link>
           </div>
 
-          <Button type='submit' className='w-full' disabled={loading}>
-            {loading ? (
+          <Button type='submit' className='w-full' disabled={loading || isSendingOTP}>
+            {loading || isSendingOTP ? (
               <>
                 <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                Signing in...
+                {isSendingOTP ? 'Sending verification code...' : 'Signing in...'}
               </>
             ) : (
               'Sign in'
