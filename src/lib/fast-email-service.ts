@@ -7,15 +7,15 @@ interface EmailOptions {
   text?: string;
 }
 
-class EmailService {
-  private static instance: EmailService;
+class FastEmailService {
+  private static instance: FastEmailService;
   private transporter: nodemailer.Transporter | null = null;
 
-  static getInstance(): EmailService {
-    if (!EmailService.instance) {
-      EmailService.instance = new EmailService();
+  static getInstance(): FastEmailService {
+    if (!FastEmailService.instance) {
+      FastEmailService.instance = new FastEmailService();
     }
-    return EmailService.instance;
+    return FastEmailService.instance;
   }
 
   private async getTransporter(): Promise<nodemailer.Transporter> {
@@ -23,48 +23,64 @@ class EmailService {
       return this.transporter;
     }
 
-    // For development, use a test account or Gmail
-    const isDevelopment = process.env.NODE_ENV === 'development';
-
-    if (isDevelopment) {
-      // Use Gmail for development with optimized settings
-      this.transporter = nodemailer.createTransporter({
+    // Use multiple fallback options for faster, more reliable email sending
+    const emailConfigs = [
+      // Option 1: Gmail with optimized settings
+      {
         service: 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER || 'your-email@gmail.com',
-          pass: process.env.EMAIL_PASSWORD || 'your-app-password',
-        },
-        // Optimized settings for faster sending
-        connectionTimeout: 10000, // 10 seconds
-        greetingTimeout: 5000,    // 5 seconds
-        socketTimeout: 10000,     // 10 seconds
-        pool: true,               // Use connection pooling
-        maxConnections: 5,        // Maximum connections
-        maxMessages: 100,         // Max messages per connection
-        rateLimit: 5,             // Max messages per second
-      });
-    } else {
-      // For production, use your preferred email service
-      this.transporter = nodemailer.createTransporter({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: false, // true for 465, false for other ports
         auth: {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASSWORD,
         },
-        // Optimized settings for faster sending
-        connectionTimeout: 10000,
-        greetingTimeout: 5000,
-        socketTimeout: 10000,
-        pool: true,
-        maxConnections: 5,
-        maxMessages: 100,
-        rateLimit: 5,
-      });
+        connectionTimeout: 8000,
+        greetingTimeout: 3000,
+        socketTimeout: 8000,
+      },
+      // Option 2: Generic SMTP with TLS
+      {
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+        connectionTimeout: 8000,
+        greetingTimeout: 3000,
+        socketTimeout: 8000,
+      },
+      // Option 3: Generic SMTP with SSL
+      {
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+        connectionTimeout: 8000,
+        greetingTimeout: 3000,
+        socketTimeout: 8000,
+      },
+    ];
+
+    // Try each configuration until one works
+    for (const config of emailConfigs) {
+      try {
+        console.log('🔧 Trying email configuration...');
+        this.transporter = nodemailer.createTransporter(config);
+        
+        // Test the connection
+        await this.transporter.verify();
+        console.log('✅ Email transporter verified successfully');
+        return this.transporter;
+      } catch (error) {
+        console.log('❌ Email config failed, trying next...');
+        continue;
+      }
     }
 
-    return this.transporter;
+    throw new Error('All email configurations failed');
   }
 
   async sendEmail(
@@ -81,7 +97,6 @@ class EmailService {
         subject: options.subject,
         html: options.html,
         text: options.text,
-        // Optimize email sending
         priority: 'high',
         headers: {
           'X-Priority': '1',
@@ -89,13 +104,14 @@ class EmailService {
         },
       };
 
-      console.log('📧 Attempting to send email to:', options.to);
+      console.log('📧 Sending email to:', options.to);
       const startTime = Date.now();
 
+      // Set a strict timeout of 10 seconds
       const result = await Promise.race([
         transporter.sendMail(mailOptions),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Email timeout after 15 seconds')), 15000)
+          setTimeout(() => reject(new Error('Email timeout after 10 seconds')), 10000)
         )
       ]) as any;
 
@@ -104,20 +120,9 @@ class EmailService {
 
       return { success: true };
     } catch (error: any) {
-      console.error('❌ Email sending failed:', error.message || error);
+      console.error('❌ Fast email sending failed:', error.message || error);
       
-      // Return specific error messages
-      if (error.code === 'ETIMEDOUT' || error.code === 'ESOCKET') {
-        return {
-          success: false,
-          error: 'Email service timeout. Please check your internet connection and try again.',
-        };
-      } else if (error.code === 'EAUTH') {
-        return {
-          success: false,
-          error: 'Email authentication failed. Please check your email credentials.',
-        };
-      } else if (error.message?.includes('timeout')) {
+      if (error.message?.includes('timeout')) {
         return {
           success: false,
           error: 'Email sending timed out. Please try again.',
@@ -126,7 +131,7 @@ class EmailService {
       
       return {
         success: false,
-        error: 'Failed to send email. Please try again.',
+        error: 'Failed to send email. Please check your email configuration.',
       };
     }
   }
@@ -166,14 +171,13 @@ class EmailService {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Email Verification</title>
           <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-            .otp-code { background: #fff; border: 2px solid #667eea; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0; }
-            .otp-number { font-size: 32px; font-weight: bold; color: #667eea; letter-spacing: 5px; }
-            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-            .button { display: inline-block; background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 10px 0; }
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 0 auto; background: #fff; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }
+            .content { padding: 30px; }
+            .otp-code { background: #f8f9fa; border: 2px solid #667eea; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0; }
+            .otp-number { font-size: 28px; font-weight: bold; color: #667eea; letter-spacing: 3px; font-family: monospace; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
           </style>
         </head>
         <body>
@@ -189,17 +193,15 @@ class EmailService {
               
               <div class="otp-code">
                 <div class="otp-number">${otp}</div>
-                <p style="margin: 10px 0 0 0; color: #666;">This code expires in 5 minutes</p>
+                <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">This code expires in 5 minutes</p>
               </div>
               
-              <p><strong>Important Security Information:</strong></p>
+              <p><strong>Security Information:</strong></p>
               <ul>
                 <li>This code is valid for 5 minutes only</li>
                 <li>Do not share this code with anyone</li>
                 <li>If you didn't request this code, please ignore this email</li>
               </ul>
-              
-              <p>If you're having trouble, you can copy and paste this code: <strong>${otp}</strong></p>
               
               <div class="footer">
                 <p>This email was sent by AI Finance Tracker</p>
@@ -229,12 +231,10 @@ ${otp}
 
 This code expires in 5 minutes.
 
-Important Security Information:
+Security Information:
 - This code is valid for 5 minutes only
 - Do not share this code with anyone
 - If you didn't request this code, please ignore this email
-
-If you're having trouble, you can copy and paste this code: ${otp}
 
 This email was sent by AI Finance Tracker
 If you didn't request this verification, please ignore this email.
@@ -242,4 +242,4 @@ If you didn't request this verification, please ignore this email.
   }
 }
 
-export const emailService = EmailService.getInstance();
+export const fastEmailService = FastEmailService.getInstance();

@@ -1,5 +1,7 @@
 // OTP Service for email verification
 import { emailService } from './email-service';
+import { fastEmailService } from './fast-email-service';
+import { devEmailService } from './dev-email-service';
 
 interface OTPData {
   code: string;
@@ -59,17 +61,36 @@ class OTPService {
         type,
       });
 
-      // Send OTP via email
+      // Send OTP via email with smart fallback
       console.log(`📧 Sending OTP to ${email}: ${otp}`);
       console.log(`⏰ Expires at: ${new Date(expiresAt).toLocaleString()}`);
 
-      const emailResult = await emailService.sendOTPEmail(email, otp, type);
+      // Check if email credentials are configured
+      const hasEmailConfig = process.env.EMAIL_USER && process.env.EMAIL_PASSWORD;
+      
+      let emailResult;
+      
+      if (!hasEmailConfig) {
+        // Use dev email service if no credentials configured
+        console.log('🚀 Using development email service (no credentials configured)');
+        emailResult = await devEmailService.sendOTPEmail(email, otp, type);
+      } else {
+        // Try fast email service first, then fallback to regular service
+        emailResult = await fastEmailService.sendOTPEmail(email, otp, type);
+        
+        if (!emailResult.success) {
+          console.log('🔄 Fast email failed, trying regular email service...');
+          emailResult = await emailService.sendOTPEmail(email, otp, type);
+        }
+      }
 
       if (!emailResult.success) {
-        // If email fails, still store OTP but log the error
-        console.error('❌ Email sending failed:', emailResult.error);
+        // If all email services fail, still store OTP but log the error
+        console.error('❌ All email services failed:', emailResult.error);
         // For development, we'll still allow the OTP to work
         // In production, you might want to return an error here
+      } else {
+        console.log('✅ Email sent successfully via optimized service');
       }
 
       return { success: true };
