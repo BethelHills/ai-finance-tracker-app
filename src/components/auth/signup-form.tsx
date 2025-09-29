@@ -89,7 +89,10 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
       } else {
         console.log('🎉 Signup successful:', data);
         setSuccess(true);
-        onSuccess?.();
+        // Auto-redirect after a short delay
+        setTimeout(() => {
+          onSuccess?.();
+        }, 2000);
       }
     } catch (err) {
       console.error('💥 Signup exception:', err);
@@ -108,25 +111,24 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
       <Card className='w-full max-w-md mx-auto'>
         <CardHeader className='space-y-1'>
           <CardTitle className='text-2xl font-bold text-center text-green-600'>
-            Check your email
+            Account Created Successfully!
           </CardTitle>
           <CardDescription className='text-center'>
-            We've sent you a confirmation link at {formData.email}
+            Welcome to AI Finance Tracker, {formData.fullName}!
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Alert>
             <AlertDescription>
-              Please check your email and click the confirmation link to
-              activate your account. You may need to check your spam folder.
+              Your account has been created and you're now signed in. You can start managing your finances right away.
             </AlertDescription>
           </Alert>
           <div className='text-center mt-4'>
             <Link
-              href='/auth/login'
+              href='/dashboard'
               className='text-blue-600 hover:text-blue-800 underline'
             >
-              Back to sign in
+              Go to Dashboard
             </Link>
           </div>
         </CardContent>

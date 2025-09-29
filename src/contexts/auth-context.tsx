@@ -86,6 +86,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       console.log('🚀 Starting signup process...');
       
+      // Check if Supabase is properly configured
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      const isSupabaseConfigured = supabaseUrl && 
+        supabaseKey && 
+        supabaseUrl !== 'https://demo.supabase.co' && 
+        supabaseKey !== 'demo-anon-key';
+      
+      if (!isSupabaseConfigured) {
+        console.log('⚠️ Supabase not configured, using fallback authentication...');
+        
+        // Use fallback authentication directly
+        const fallbackResult = await FallbackAuth.signUp(email, password, userData);
+        
+        if (fallbackResult.error) {
+          console.error('💥 Fallback signup failed:', fallbackResult.error);
+          return fallbackResult;
+        }
+
+        console.log('🎉 Fallback signup successful!');
+        
+        // Simulate successful authentication for fallback
+        const fallbackUser = {
+          id: fallbackResult.data.user.id,
+          email: fallbackResult.data.user.email,
+          user_metadata: {
+            full_name: fallbackResult.data.user.full_name,
+          },
+        } as User;
+        
+        setUser(fallbackUser);
+        setSession({
+          user: fallbackUser,
+          access_token: 'fallback-token',
+          refresh_token: 'fallback-refresh',
+          expires_in: 3600,
+          expires_at: Math.floor(Date.now() / 1000) + 3600,
+          token_type: 'bearer',
+        } as Session);
+        
+        return { data: { user: fallbackUser }, error: null };
+      }
+      
       // Try Supabase first
       try {
         const freshSupabase = createClient();
@@ -122,7 +166,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         console.log('🎉 Fallback signup successful!');
-        return fallbackResult;
+        
+        // Simulate successful authentication for fallback
+        const fallbackUser = {
+          id: fallbackResult.data.user.id,
+          email: fallbackResult.data.user.email,
+          user_metadata: {
+            full_name: fallbackResult.data.user.full_name,
+          },
+        } as User;
+        
+        setUser(fallbackUser);
+        setSession({
+          user: fallbackUser,
+          access_token: 'fallback-token',
+          refresh_token: 'fallback-refresh',
+          expires_in: 3600,
+          expires_at: Math.floor(Date.now() / 1000) + 3600,
+          token_type: 'bearer',
+        } as Session);
+        
+        return { data: { user: fallbackUser }, error: null };
       }
     } catch (error: any) {
       console.error('💥 Complete signup failure:', error);
@@ -141,6 +205,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
+      
+      // Check if Supabase is properly configured
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      const isSupabaseConfigured = supabaseUrl && 
+        supabaseKey && 
+        supabaseUrl !== 'https://demo.supabase.co' && 
+        supabaseKey !== 'demo-anon-key';
+      
+      if (!isSupabaseConfigured) {
+        console.log('⚠️ Supabase not configured, using fallback authentication...');
+        
+        // Use fallback authentication
+        const fallbackResult = await FallbackAuth.signIn(email, password);
+        
+        if (fallbackResult.error) {
+          console.error('💥 Fallback sign in failed:', fallbackResult.error);
+          return fallbackResult;
+        }
+
+        console.log('🎉 Fallback sign in successful!');
+        
+        // Simulate successful authentication for fallback
+        const fallbackUser = {
+          id: fallbackResult.data.user.id,
+          email: fallbackResult.data.user.email,
+          user_metadata: {
+            full_name: fallbackResult.data.user.full_name,
+          },
+        } as User;
+        
+        setUser(fallbackUser);
+        setSession({
+          user: fallbackUser,
+          access_token: 'fallback-token',
+          refresh_token: 'fallback-refresh',
+          expires_in: 3600,
+          expires_at: Math.floor(Date.now() / 1000) + 3600,
+          token_type: 'bearer',
+        } as Session);
+        
+        return { data: { user: fallbackUser }, error: null };
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -159,6 +268,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       setLoading(true);
+      
+      // Check if Supabase is properly configured
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      const isSupabaseConfigured = supabaseUrl && 
+        supabaseKey && 
+        supabaseUrl !== 'https://demo.supabase.co' && 
+        supabaseKey !== 'demo-anon-key';
+      
+      if (!isSupabaseConfigured) {
+        console.log('⚠️ Supabase not configured, using fallback sign out...');
+        
+        // Clear fallback authentication state
+        setUser(null);
+        setSession(null);
+        
+        return;
+      }
+      
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     } catch (error) {
