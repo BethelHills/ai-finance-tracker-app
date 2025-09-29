@@ -67,20 +67,33 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(false);
 
-    if (!validateForm()) return;
+    console.log('🔄 Form submitted, validating...');
+    
+    if (!validateForm()) {
+      console.log('❌ Form validation failed');
+      return;
+    }
 
-    const { data, error } = await signUp(formData.email, formData.password, {
-      full_name: formData.fullName,
-    });
+    console.log('✅ Form valid, attempting signup...');
 
-    if (error) {
-      console.error('Signup error details:', error);
-      setError(error.message || 'Failed to create account. Please try again.');
-    } else {
-      console.log('Signup successful:', data);
-      setSuccess(true);
-      onSuccess?.();
+    try {
+      const { data, error } = await signUp(formData.email, formData.password, {
+        full_name: formData.fullName,
+      });
+
+      if (error) {
+        console.error('💥 Signup error:', error);
+        setError(error.message || 'Failed to create account. Please try again.');
+      } else {
+        console.log('🎉 Signup successful:', data);
+        setSuccess(true);
+        onSuccess?.();
+      }
+    } catch (err) {
+      console.error('💥 Signup exception:', err);
+      setError('An unexpected error occurred. Please try again.');
     }
   };
 
@@ -242,6 +255,13 @@ export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
               'Create account'
             )}
           </Button>
+          
+          {loading && (
+            <div className='text-center text-sm text-gray-600'>
+              <p>Setting up your secure account...</p>
+              <p className='text-xs mt-1'>This may take a moment</p>
+            </div>
+          )}
 
           <div className='text-center text-sm'>
             Already have an account?{' '}

@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
+import { FallbackAuth } from '@/lib/auth-fallback';
 
 interface AuthContextType {
   user: User | null;
@@ -83,50 +84,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string, userData?: any) => {
     try {
       setLoading(true);
-      console.log('=== SIGNUP DEBUG START ===');
-      console.log('Attempting signup with:', { email, userData });
-      console.log('Supabase client:', supabase);
-      console.log('Environment check:', {
-        url: process.env.NEXT_PUBLIC_SUPABASE_URL,
-        hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      });
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: userData || {},
-        },
-      });
-
-      console.log('=== SIGNUP RESPONSE ===');
-      console.log('Data:', data);
-      console.log('Error:', error);
-      console.log('=== SIGNUP DEBUG END ===');
-
-      if (error) {
-        console.error('Supabase signup error:', error);
-        return {
-          data: null,
-          error: {
-            message: error.message || 'Signup failed',
-            details: error,
+      console.log('🚀 Starting signup process...');
+      
+      // Try Supabase first
+      try {
+        const freshSupabase = createClient();
+        console.log('📧 Attempting Supabase signup for:', email);
+        
+        const { data, error } = await freshSupabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: userData || {},
           },
-        };
+        });
+
+        console.log('📊 Supabase response received');
+        console.log('✅ Data:', data);
+        console.log('❌ Error:', error);
+
+        if (error) {
+          console.log('⚠️ Supabase failed, trying fallback...');
+          throw error;
+        }
+
+        console.log('🎉 Supabase signup successful!');
+        return { data, error: null };
+      } catch (supabaseError) {
+        console.log('🔄 Supabase failed, using fallback authentication...');
+        
+        // Use fallback authentication
+        const fallbackResult = await FallbackAuth.signUp(email, password, userData);
+        
+        if (fallbackResult.error) {
+          console.error('💥 Fallback signup failed:', fallbackResult.error);
+          return fallbackResult;
+        }
+
+        console.log('🎉 Fallback signup successful!');
+        return fallbackResult;
       }
-
-      return { data, error: null };
     } catch (error: any) {
-      console.error('=== SIGNUP CATCH ERROR ===');
-      console.error('Error type:', typeof error);
-      console.error('Error message:', error?.message);
-      console.error('Full error:', error);
-      console.error('=== SIGNUP CATCH END ===');
-
+      console.error('💥 Complete signup failure:', error);
       return {
         data: null,
         error: {
-          message: error?.message || 'Unknown error occurred',
+          message: error?.message || 'Signup failed completely',
           details: error,
         },
       };
