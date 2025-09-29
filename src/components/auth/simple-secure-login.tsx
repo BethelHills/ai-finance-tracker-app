@@ -88,10 +88,10 @@ export default function SimpleSecureLogin() {
         throw new Error(result.error || 'Invalid OTP code');
       }
 
-      setMessage('🎉 Login successful!');
+      setMessage('🎉 Login successful! Redirecting to dashboard...');
       console.log('User logged in successfully');
       
-      // Redirect or handle success
+      // ✅ Redirect to dashboard after successful login
       setTimeout(() => {
         window.location.href = '/dashboard';
       }, 1500);
@@ -122,7 +122,7 @@ export default function SimpleSecureLogin() {
       const result = await response.json();
 
       if (result.success) {
-        setMessage('✅ New OTP sent to your email.');
+        setMessage('📩 OTP resent to your email.');
         setOtp('');
       } else {
         setMessage(`❌ ${result.error || 'Failed to resend OTP'}`);
