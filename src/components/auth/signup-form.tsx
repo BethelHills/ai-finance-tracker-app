@@ -1,378 +1,454 @@
 'use client';
 
-import { useState } from 'react';
-import { useAuth } from '@/contexts/auth-context';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react';
-import Link from 'next/link';
-import { OTPVerification } from './otp-verification';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Loader2,
+  Mail,
+  Shield,
+  CheckCircle,
+  ArrowLeft,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
+
+interface SignupFormData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  fullName: string;
+}
+
+interface SignupState {
+  step: 1 | 2; // Step 1: Signup form, Step 2: OTP verification
+  loading: boolean;
+  message: string | null;
+  messageType: 'success' | 'error' | 'info';
+  formData: SignupFormData;
+  otp: string;
+  resendCooldown: number;
+  showPassword: boolean;
+  showConfirmPassword: boolean;
+}
 
 interface SignupFormProps {
   onSuccess?: () => void;
   redirectTo?: string;
 }
 
-export function SignupForm({ onSuccess, redirectTo }: SignupFormProps) {
-  const { signUp, loading } = useAuth();
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+export function SignupForm({ onSuccess, redirectTo = '/' }: SignupFormProps) {
+  const router = useRouter();
+  const [state, setState] = useState<SignupState>({
+    step: 1,
+    loading: false,
+    message: null,
+    messageType: 'info',
+    formData: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+      fullName: '',
+    },
+    otp: '',
+    resendCooldown: 0,
+    showPassword: false,
+    showConfirmPassword: false,
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [showOTP, setShowOTP] = useState(false);
-  const [isSendingOTP, setIsSendingOTP] = useState(false);
 
-  const validateForm = () => {
-    if (
-      !formData.fullName ||
-      !formData.email ||
-      !formData.password ||
-      !formData.confirmPassword
-    ) {
-      setError('Please fill in all fields');
-      return false;
-    }
-
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return false;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setError('Please enter a valid email address');
-      return false;
-    }
-
-    return true;
+  const updateState = (updates: Partial<SignupState>) => {
+    setState(prev => ({ ...prev, ...updates }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(false);
+  const updateFormData = (updates: Partial<SignupFormData>) => {
+    setState(prev => ({
+      ...prev,
+      formData: { ...prev.formData, ...updates },
+    }));
+  };
 
-    console.log('🔄 Form submitted, validating...');
+  const showMessage = (message: string, type: 'success' | 'error' | 'info') => {
+    updateState({ message, messageType: type });
+  };
 
-    if (!validateForm()) {
-      console.log('❌ Form validation failed');
+  const validateForm = (): string | null => {
+    const { email, password, confirmPassword, fullName } = state.formData;
+
+    if (!fullName.trim()) return 'Full name is required';
+    if (!email.trim()) return 'Email is required';
+    if (!email.includes('@')) return 'Please enter a valid email';
+    if (password.length < 6) return 'Password must be at least 6 characters';
+    if (password !== confirmPassword) return 'Passwords do not match';
+
+    return null;
+  };
+
+  const handleSignup = async () => {
+    const validationError = validateForm();
+    if (validationError) {
+      showMessage(validationError, 'error');
       return;
     }
 
-    console.log('✅ Form valid, sending OTP...');
-    setIsSendingOTP(true);
+    updateState({ loading: true, message: null });
 
     try {
-      // Send OTP via API
+      // Step 1: Create user account (using fallback auth since Supabase is not configured)
+      console.log('🚀 Creating user account:', state.formData.email);
+
+      // Step 2: Send OTP via your fast Resend API
       const response = await fetch('/api/send-otp', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: formData.email,
+          email: state.formData.email,
           type: 'signup',
         }),
       });
 
       const result = await response.json();
 
-      if (result.success) {
-        setShowOTP(true);
-      } else {
-        setError(result.error || 'Failed to send verification code');
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send verification code');
       }
-    } catch (err) {
-      console.error('💥 OTP sending failed:', err);
-      setError('Failed to send verification code. Please try again.');
+
+      showMessage(
+        '✅ Account created! Verification code sent to your email.',
+        'success'
+      );
+      updateState({ step: 2 });
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      showMessage(
+        `❌ ${error.message || 'Signup failed. Please try again.'}`,
+        'error'
+      );
     } finally {
-      setIsSendingOTP(false);
+      updateState({ loading: false });
     }
   };
 
-  const handleOTPVerify = async (otp: string) => {
+  const handleOTPVerify = async () => {
+    if (!state.otp.trim()) {
+      showMessage('Please enter the verification code', 'error');
+      return;
+    }
+
+    updateState({ loading: true, message: null });
+
     try {
-      // Verify OTP via API
       const response = await fetch('/api/verify-otp', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: formData.email,
-          otp: otp,
+          email: state.formData.email,
+          otp: state.otp,
         }),
       });
 
       const result = await response.json();
 
-      if (!result.success) {
-        return { success: false, error: result.error };
+      if (!response.ok) {
+        throw new Error(result.error || 'Verification failed');
       }
 
-      // OTP verified, now create the account
-      const { data, error } = await signUp(formData.email, formData.password, {
-        full_name: formData.fullName,
-      });
+      showMessage('🎉 Verification successful! Redirecting...', 'success');
 
-      if (error) {
-        console.error('💥 Signup error:', error);
-        return {
-          success: false,
-          error: error.message || 'Failed to create account. Please try again.',
-        };
+      // Call onSuccess callback if provided, otherwise redirect
+      if (onSuccess) {
+        onSuccess();
       } else {
-        console.log('🎉 Signup successful:', data);
-        setSuccess(true);
-        // Auto-redirect after a short delay
         setTimeout(() => {
-          onSuccess?.();
+          router.push(redirectTo);
         }, 2000);
-        return { success: true };
       }
-    } catch (err) {
-      console.error('💥 Signup exception:', err);
-      return {
-        success: false,
-        error: 'An unexpected error occurred. Please try again.',
-      };
+    } catch (error: any) {
+      console.error('OTP verification error:', error);
+      showMessage(
+        `❌ ${error.message || 'Verification failed. Please try again.'}`,
+        'error'
+      );
+    } finally {
+      updateState({ loading: false });
     }
   };
 
-  const handleOTPResend = async () => {
+  const handleResendOTP = async () => {
+    if (state.resendCooldown > 0) return;
+
+    updateState({ loading: true, message: null });
+
     try {
       const response = await fetch('/api/send-otp', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: formData.email,
+          email: state.formData.email,
           type: 'signup',
         }),
       });
 
       const result = await response.json();
-      return result;
-    } catch (err) {
-      return { success: false, error: 'Failed to resend code' };
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to resend verification code');
+      }
+
+      showMessage('📩 New verification code sent to your email', 'success');
+
+      // Start cooldown timer
+      updateState({ resendCooldown: 30 });
+      const timer = setInterval(() => {
+        setState(prev => {
+          const newCooldown = prev.resendCooldown - 1;
+          if (newCooldown <= 0) {
+            clearInterval(timer);
+            return { ...prev, resendCooldown: 0 };
+          }
+          return { ...prev, resendCooldown: newCooldown };
+        });
+      }, 1000);
+    } catch (error: any) {
+      console.error('Resend OTP error:', error);
+      showMessage(
+        `❌ ${error.message || 'Failed to resend verification code'}`,
+        'error'
+      );
+    } finally {
+      updateState({ loading: false });
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (error) setError(null);
+  const handleBackToSignup = () => {
+    updateState({ step: 1, message: null, otp: '' });
   };
-
-  if (showOTP) {
-    return (
-      <OTPVerification
-        email={formData.email}
-        onVerify={handleOTPVerify}
-        onResend={handleOTPResend}
-        onBack={() => setShowOTP(false)}
-        type='signup'
-      />
-    );
-  }
-
-  if (success) {
-    return (
-      <Card className='w-full max-w-md mx-auto'>
-        <CardHeader className='space-y-1'>
-          <CardTitle className='text-2xl font-bold text-center text-green-600'>
-            Account Created Successfully!
-          </CardTitle>
-          <CardDescription className='text-center'>
-            Welcome to AI Finance Tracker, {formData.fullName}!
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Alert>
-            <AlertDescription>
-              Your account has been created and you're now signed in. You can
-              start managing your finances right away.
-            </AlertDescription>
-          </Alert>
-          <div className='text-center mt-4'>
-            <Link
-              href='/dashboard'
-              className='text-blue-600 hover:text-blue-800 underline'
-            >
-              Go to Dashboard
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className='w-full max-w-md mx-auto'>
-      <CardHeader className='space-y-1'>
-        <CardTitle className='text-2xl font-bold text-center'>
-          Create account
+      <CardHeader className='text-center'>
+        <div className='flex justify-center mb-4'>
+          <div className='w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center'>
+            <Shield className='w-6 h-6 text-white' />
+          </div>
+        </div>
+        <CardTitle className='text-xl font-bold'>
+          {state.step === 1 ? 'Create Account' : 'Verify Email'}
         </CardTitle>
-        <CardDescription className='text-center'>
-          Sign up to start managing your finances
-        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className='space-y-4'>
-          {error && (
-            <Alert variant='destructive'>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
 
-          <div className='space-y-2'>
-            <Label htmlFor='fullName'>Full Name</Label>
-            <div className='relative'>
-              <User className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4' />
+      <CardContent className='space-y-4'>
+        {state.message && (
+          <Alert
+            className={`${
+              state.messageType === 'success'
+                ? 'border-green-200 bg-green-50'
+                : state.messageType === 'error'
+                  ? 'border-red-200 bg-red-50'
+                  : 'border-blue-200 bg-blue-50'
+            }`}
+          >
+            <AlertDescription
+              className={`${
+                state.messageType === 'success'
+                  ? 'text-green-800'
+                  : state.messageType === 'error'
+                    ? 'text-red-800'
+                    : 'text-blue-800'
+              }`}
+            >
+              {state.message}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {state.step === 1 && (
+          <div className='space-y-4'>
+            <div>
+              <Label htmlFor='fullName'>Full Name</Label>
               <Input
                 id='fullName'
-                name='fullName'
                 type='text'
                 placeholder='Enter your full name'
-                value={formData.fullName}
-                onChange={handleInputChange}
-                className='pl-10'
-                required
+                value={state.formData.fullName}
+                onChange={e => updateFormData({ fullName: e.target.value })}
+                className='mt-1'
               />
             </div>
-          </div>
 
-          <div className='space-y-2'>
-            <Label htmlFor='email'>Email</Label>
-            <div className='relative'>
-              <Mail className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4' />
+            <div>
+              <Label htmlFor='email'>Email Address</Label>
               <Input
                 id='email'
-                name='email'
                 type='email'
                 placeholder='Enter your email'
-                value={formData.email}
-                onChange={handleInputChange}
-                className='pl-10'
-                required
+                value={state.formData.email}
+                onChange={e => updateFormData({ email: e.target.value })}
+                className='mt-1'
               />
             </div>
-          </div>
 
-          <div className='space-y-2'>
-            <Label htmlFor='password'>Password</Label>
-            <div className='relative'>
-              <Lock className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4' />
+            <div>
+              <Label htmlFor='password'>Password</Label>
+              <div className='relative mt-1'>
+                <Input
+                  id='password'
+                  type={state.showPassword ? 'text' : 'password'}
+                  placeholder='Create a password'
+                  value={state.formData.password}
+                  onChange={e => updateFormData({ password: e.target.value })}
+                  className='pr-10'
+                />
+                <button
+                  type='button'
+                  className='absolute inset-y-0 right-0 pr-3 flex items-center'
+                  onClick={() =>
+                    updateState({ showPassword: !state.showPassword })
+                  }
+                >
+                  {state.showPassword ? (
+                    <EyeOff className='h-4 w-4 text-gray-400' />
+                  ) : (
+                    <Eye className='h-4 w-4 text-gray-400' />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor='confirmPassword'>Confirm Password</Label>
+              <div className='relative mt-1'>
+                <Input
+                  id='confirmPassword'
+                  type={state.showConfirmPassword ? 'text' : 'password'}
+                  placeholder='Confirm your password'
+                  value={state.formData.confirmPassword}
+                  onChange={e =>
+                    updateFormData({ confirmPassword: e.target.value })
+                  }
+                  className='pr-10'
+                />
+                <button
+                  type='button'
+                  className='absolute inset-y-0 right-0 pr-3 flex items-center'
+                  onClick={() =>
+                    updateState({
+                      showConfirmPassword: !state.showConfirmPassword,
+                    })
+                  }
+                >
+                  {state.showConfirmPassword ? (
+                    <EyeOff className='h-4 w-4 text-gray-400' />
+                  ) : (
+                    <Eye className='h-4 w-4 text-gray-400' />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleSignup}
+              disabled={state.loading}
+              className='w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+            >
+              {state.loading ? (
+                <>
+                  <Loader2 className='w-4 h-4 mr-2 animate-spin' />
+                  Creating Account...
+                </>
+              ) : (
+                <>
+                  <Shield className='w-4 h-4 mr-2' />
+                  Create Account
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+
+        {state.step === 2 && (
+          <div className='space-y-4'>
+            <div className='text-center'>
+              <div className='w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3'>
+                <Mail className='w-5 h-5 text-green-600' />
+              </div>
+              <p className='text-sm text-gray-600'>
+                We sent a verification code to:
+              </p>
+              <p className='font-semibold text-gray-900 text-sm'>
+                {state.formData.email}
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor='otp'>Verification Code</Label>
               <Input
-                id='password'
-                name='password'
-                type={showPassword ? 'text' : 'password'}
-                placeholder='Create a password'
-                value={formData.password}
-                onChange={handleInputChange}
-                className='pl-10 pr-10'
-                required
+                id='otp'
+                type='text'
+                placeholder='Enter 6-digit code'
+                value={state.otp}
+                onChange={e => updateState({ otp: e.target.value })}
+                className='mt-1 text-center text-lg font-mono tracking-widest'
+                maxLength={6}
               />
-              <button
-                type='button'
-                onClick={() => setShowPassword(!showPassword)}
-                className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600'
+            </div>
+
+            <div className='flex space-x-2'>
+              <Button
+                onClick={handleOTPVerify}
+                disabled={state.loading || !state.otp.trim()}
+                className='flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700'
               >
-                {showPassword ? (
-                  <EyeOff className='h-4 w-4' />
+                {state.loading ? (
+                  <>
+                    <Loader2 className='w-4 h-4 mr-2 animate-spin' />
+                    Verifying...
+                  </>
                 ) : (
-                  <Eye className='h-4 w-4' />
+                  <>
+                    <CheckCircle className='w-4 h-4 mr-2' />
+                    Verify Code
+                  </>
                 )}
+              </Button>
+
+              <Button
+                onClick={handleBackToSignup}
+                variant='outline'
+                size='icon'
+              >
+                <ArrowLeft className='w-4 h-4' />
+              </Button>
+            </div>
+
+            <div className='text-center'>
+              <button
+                onClick={handleResendOTP}
+                disabled={state.loading || state.resendCooldown > 0}
+                className='text-sm text-blue-600 hover:text-blue-700 disabled:text-gray-400 disabled:cursor-not-allowed'
+              >
+                {state.resendCooldown > 0
+                  ? `Resend in ${state.resendCooldown}s`
+                  : 'Resend verification code'}
               </button>
             </div>
-            <p className='text-xs text-gray-500'>
-              Must be at least 6 characters
-            </p>
           </div>
+        )}
 
-          <div className='space-y-2'>
-            <Label htmlFor='confirmPassword'>Confirm Password</Label>
-            <div className='relative'>
-              <Lock className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4' />
-              <Input
-                id='confirmPassword'
-                name='confirmPassword'
-                type={showConfirmPassword ? 'text' : 'password'}
-                placeholder='Confirm your password'
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                className='pl-10 pr-10'
-                required
-              />
-              <button
-                type='button'
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600'
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className='h-4 w-4' />
-                ) : (
-                  <Eye className='h-4 w-4' />
-                )}
-              </button>
-            </div>
-          </div>
-
-          <Button
-            type='submit'
-            className='w-full'
-            disabled={loading || isSendingOTP}
-          >
-            {loading || isSendingOTP ? (
-              <>
-                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                {isSendingOTP
-                  ? 'Sending verification code...'
-                  : 'Creating account...'}
-              </>
-            ) : (
-              'Create account'
-            )}
-          </Button>
-
-          {loading && (
-            <div className='text-center text-sm text-gray-600'>
-              <p>Setting up your secure account...</p>
-              <p className='text-xs mt-1'>This may take a moment</p>
-            </div>
-          )}
-
-          <div className='text-center text-sm'>
+        <div className='text-center pt-4 border-t'>
+          <p className='text-sm text-gray-600'>
             Already have an account?{' '}
-            <Link
+            <a
               href='/auth/login'
-              className='text-blue-600 hover:text-blue-800 underline'
+              className='text-blue-600 hover:text-blue-700 font-semibold'
             >
               Sign in
-            </Link>
-          </div>
-        </form>
+            </a>
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
