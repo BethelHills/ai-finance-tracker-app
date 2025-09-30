@@ -13,7 +13,6 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Mail, ArrowLeft, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
-import { OTPDevHelper } from './otp-dev-helper';
 
 interface OTPVerificationProps {
   email: string;
@@ -175,10 +174,6 @@ export function OTPVerification({
         </CardDescription>
       </CardHeader>
       <CardContent className='space-y-6'>
-        {/* Development Helper */}
-        {process.env.NODE_ENV === 'development' && (
-          <OTPDevHelper email={email} />
-        )}
         {error && (
           <Alert variant='destructive'>
             <AlertDescription>{error}</AlertDescription>

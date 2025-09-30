@@ -20,9 +20,11 @@ class ResendEmailService {
 
   private initializeResend(): void {
     const apiKey = process.env.RESEND_API_KEY;
-    
+
     if (!apiKey) {
-      console.log('⚠️ RESEND_API_KEY not configured, Resend service unavailable');
+      console.log(
+        '⚠️ RESEND_API_KEY not configured, Resend service unavailable'
+      );
       return;
     }
 
@@ -53,7 +55,9 @@ class ResendEmailService {
       const startTime = Date.now();
 
       const result = await this.resend.emails.send({
-        from: process.env.EMAIL_FROM || 'AI Finance Tracker <noreply@aifinancetracker.com>',
+        from:
+          process.env.EMAIL_FROM ||
+          'AI Finance Tracker <noreply@aifinancetracker.com>',
         to: options.to,
         subject: options.subject,
         html: options.html,
@@ -61,12 +65,15 @@ class ResendEmailService {
       });
 
       const duration = Date.now() - startTime;
-      console.log(`📧 Email sent successfully via Resend in ${duration}ms:`, result.data?.id);
+      console.log(
+        `📧 Email sent successfully via Resend in ${duration}ms:`,
+        result.data?.id
+      );
 
       return { success: true };
     } catch (error: any) {
       console.error('❌ Resend email sending failed:', error);
-      
+
       return {
         success: false,
         error: error.message || 'Failed to send email via Resend.',

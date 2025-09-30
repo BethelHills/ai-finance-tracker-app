@@ -20,6 +20,7 @@ This guide will help you set up email services for sending OTP verification code
    - Copy the key (starts with `re_`)
 
 3. **Configure Environment Variables**:
+
    ```bash
    # Add to your .env.local file
    RESEND_API_KEY=re_your_actual_api_key_here
@@ -32,6 +33,7 @@ This guide will help you set up email services for sending OTP verification code
    ```
 
 #### Benefits of Resend:
+
 - ⚡ **Ultra-fast delivery** (usually under 1 second)
 - 📈 **High deliverability** (emails reach inbox, not spam)
 - 🛡️ **Built-in security** (no need to manage SMTP credentials)
@@ -84,11 +86,13 @@ The application automatically chooses the best available email service:
 ## 🧪 Testing Your Setup
 
 ### Check Email Configuration:
+
 ```bash
 curl http://localhost:3000/api/check-email-config
 ```
 
 ### Test OTP Sending:
+
 1. Go to your login/signup page
 2. Enter an email address
 3. Check the console logs for email service status
@@ -98,16 +102,19 @@ curl http://localhost:3000/api/check-email-config
 ## 🔍 Troubleshooting
 
 ### Resend Issues:
+
 - **"Invalid API key"**: Make sure your API key starts with `re_`
 - **"Domain not verified"**: For production, verify your sending domain in Resend dashboard
 - **Rate limits**: Free tier allows 100 emails/day
 
 ### SMTP Issues:
+
 - **"Authentication failed"**: Use App Password, not your regular Gmail password
 - **"Connection timeout"**: Check your internet connection and firewall settings
 - **"Rate limits"**: Gmail has sending limits (500 emails/day for free accounts)
 
 ### Development Mode:
+
 - OTP codes are logged to the server console
 - Check your terminal where `npm run dev` is running
 - Look for messages like `📧 [DEV MODE] OTP Code: 123456`

@@ -16,7 +16,6 @@ import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react';
 import Link from 'next/link';
 import { OTPVerification } from './otp-verification';
-import { otpService } from '@/lib/otp-service';
 
 interface SignupFormProps {
   onSuccess?: () => void;

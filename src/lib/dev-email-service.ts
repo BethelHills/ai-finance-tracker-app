@@ -20,11 +20,14 @@ class DevEmailService {
   ): Promise<{ success: boolean; error?: string }> {
     // Simulate email sending with a short delay
     await new Promise(resolve => setTimeout(resolve, 500)); // 0.5 second delay
-    
+
     console.log('📧 [DEV MODE] Email would be sent to:', options.to);
     console.log('📧 [DEV MODE] Subject:', options.subject);
-    console.log('📧 [DEV MODE] OTP Code:', this.extractOTPFromHTML(options.html));
-    
+    console.log(
+      '📧 [DEV MODE] OTP Code:',
+      this.extractOTPFromHTML(options.html)
+    );
+
     // Always succeed in development mode
     return { success: true };
   }
@@ -61,16 +64,16 @@ class DevEmailService {
       /<div style="[^"]*font-family: monospace[^"]*">(\d+)<\/div>/,
       /<div class="otp-number">(\d+)<\/div>/,
       /font-family: monospace[^>]*>(\d+)</,
-      />(\d{6})</
+      />(\d{6})</,
     ];
-    
+
     for (const pattern of patterns) {
       const match = html.match(pattern);
       if (match) {
         return match[1];
       }
     }
-    
+
     return 'Not found';
   }
 

@@ -28,7 +28,7 @@ class EmailService {
 
     if (isDevelopment) {
       // Use Gmail for development with optimized settings
-      this.transporter = nodemailer.createTransporter({
+      this.transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
           user: process.env.EMAIL_USER || 'your-email@gmail.com',
@@ -36,16 +36,16 @@ class EmailService {
         },
         // Optimized settings for faster sending
         connectionTimeout: 10000, // 10 seconds
-        greetingTimeout: 5000,    // 5 seconds
-        socketTimeout: 10000,     // 10 seconds
-        pool: true,               // Use connection pooling
-        maxConnections: 5,        // Maximum connections
-        maxMessages: 100,         // Max messages per connection
-        rateLimit: 5,             // Max messages per second
+        greetingTimeout: 5000, // 5 seconds
+        socketTimeout: 10000, // 10 seconds
+        pool: true, // Use connection pooling
+        maxConnections: 5, // Maximum connections
+        maxMessages: 100, // Max messages per connection
+        rateLimit: 5, // Max messages per second
       });
     } else {
       // For production, use your preferred email service
-      this.transporter = nodemailer.createTransporter({
+      this.transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
         port: parseInt(process.env.SMTP_PORT || '587'),
         secure: false, // true for 465, false for other ports
@@ -82,7 +82,7 @@ class EmailService {
         html: options.html,
         text: options.text,
         // Optimize email sending
-        priority: 'high',
+        priority: 'high' as const,
         headers: {
           'X-Priority': '1',
           'X-MSMail-Priority': 'High',
@@ -92,30 +92,38 @@ class EmailService {
       console.log('📧 Attempting to send email to:', options.to);
       const startTime = Date.now();
 
-      const result = await Promise.race([
+      const result = (await Promise.race([
         transporter.sendMail(mailOptions),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Email timeout after 15 seconds')), 15000)
-        )
-      ]) as any;
+        new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new Error('Email timeout after 15 seconds')),
+            15000
+          )
+        ),
+      ])) as any;
 
       const duration = Date.now() - startTime;
-      console.log(`📧 Email sent successfully in ${duration}ms:`, result.messageId);
+      console.log(
+        `📧 Email sent successfully in ${duration}ms:`,
+        result.messageId
+      );
 
       return { success: true };
     } catch (error: any) {
       console.error('❌ Email sending failed:', error.message || error);
-      
+
       // Return specific error messages
       if (error.code === 'ETIMEDOUT' || error.code === 'ESOCKET') {
         return {
           success: false,
-          error: 'Email service timeout. Please check your internet connection and try again.',
+          error:
+            'Email service timeout. Please check your internet connection and try again.',
         };
       } else if (error.code === 'EAUTH') {
         return {
           success: false,
-          error: 'Email authentication failed. Please check your email credentials.',
+          error:
+            'Email authentication failed. Please check your email credentials.',
         };
       } else if (error.message?.includes('timeout')) {
         return {
@@ -123,7 +131,7 @@ class EmailService {
           error: 'Email sending timed out. Please try again.',
         };
       }
-      
+
       return {
         success: false,
         error: 'Failed to send email. Please try again.',
