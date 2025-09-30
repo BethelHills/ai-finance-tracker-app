@@ -1,8 +1,8 @@
 import { Queue, Worker, Job } from 'bullmq';
 import Redis from 'ioredis';
 
-// Redis connection
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+// Redis connection - only connect if Redis URL is provided
+const redis = process.env.REDIS_URL ? new Redis(process.env.REDIS_URL) : null;
 
 // Job types
 export interface TransactionSyncJob {
@@ -34,70 +34,66 @@ export interface AICategorizationJob {
   userId: string;
 }
 
-// Queue definitions
-export const transactionSyncQueue = new Queue<TransactionSyncJob>(
-  'transaction-sync',
-  {
-    connection: redis,
-    defaultJobOptions: {
-      removeOnComplete: 100,
-      removeOnFail: 50,
-      attempts: 3,
-      backoff: {
-        type: 'exponential',
-        delay: 2000,
+// Queue definitions - only create if Redis is available
+export const transactionSyncQueue = redis
+  ? new Queue<TransactionSyncJob>('transaction-sync', {
+      connection: redis,
+      defaultJobOptions: {
+        removeOnComplete: 100,
+        removeOnFail: 50,
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
       },
-    },
-  }
-);
+    })
+  : null;
 
-export const reconciliationQueue = new Queue<ReconciliationJob>(
-  'reconciliation',
-  {
-    connection: redis,
-    defaultJobOptions: {
-      removeOnComplete: 50,
-      removeOnFail: 25,
-      attempts: 2,
-      backoff: {
-        type: 'exponential',
-        delay: 5000,
+export const reconciliationQueue = redis
+  ? new Queue<ReconciliationJob>('reconciliation', {
+      connection: redis,
+      defaultJobOptions: {
+        removeOnComplete: 50,
+        removeOnFail: 25,
+        attempts: 2,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
       },
-    },
-  }
-);
+    })
+  : null;
 
-export const webhookProcessingQueue = new Queue<WebhookProcessingJob>(
-  'webhook-processing',
-  {
-    connection: redis,
-    defaultJobOptions: {
-      removeOnComplete: 200,
-      removeOnFail: 100,
-      attempts: 5,
-      backoff: {
-        type: 'exponential',
-        delay: 1000,
+export const webhookProcessingQueue = redis
+  ? new Queue<WebhookProcessingJob>('webhook-processing', {
+      connection: redis,
+      defaultJobOptions: {
+        removeOnComplete: 200,
+        removeOnFail: 100,
+        attempts: 5,
+        backoff: {
+          type: 'exponential',
+          delay: 1000,
+        },
       },
-    },
-  }
-);
+    })
+  : null;
 
-export const aiCategorizationQueue = new Queue<AICategorizationJob>(
-  'ai-categorization',
-  {
-    connection: redis,
-    defaultJobOptions: {
-      removeOnComplete: 500,
-      removeOnFail: 100,
-      attempts: 2,
-      backoff: {
-        type: 'fixed',
-        delay: 1000,
+export const aiCategorizationQueue = redis
+  ? new Queue<AICategorizationJob>('ai-categorization', {
+      connection: redis,
+      defaultJobOptions: {
+        removeOnComplete: 500,
+        removeOnFail: 100,
+        attempts: 2,
+        backoff: {
+          type: 'fixed',
+          delay: 1000,
+        },
       },
-    },
-  }
-);
+    })
+  : null;
 
 // Job processors
 export class QueueProcessors {
@@ -121,12 +117,14 @@ export class QueueProcessors {
       // Process each transaction
       for (const transaction of transactions) {
         // Add AI categorization job
-        await aiCategorizationQueue.add('categorize-transaction', {
-          transactionId: transaction.transaction_id,
-          description: transaction.name,
-          amount: transaction.amount,
-          userId,
-        });
+        if (aiCategorizationQueue) {
+          await aiCategorizationQueue.add('categorize-transaction', {
+            transactionId: transaction.transaction_id,
+            description: transaction.name,
+            amount: transaction.amount,
+            userId,
+          });
+        }
       }
 
       console.log(
@@ -408,6 +406,11 @@ export class QueueProcessors {
 
 // Worker initialization
 export function initializeWorkers() {
+  if (!redis) {
+    console.log('Redis not configured, skipping worker initialization');
+    return;
+  }
+
   // Transaction Sync Worker
   new Worker('transaction-sync', QueueProcessors.processTransactionSync, {
     connection: redis,
@@ -443,7 +446,11 @@ export class QueueManager {
     startDate: string,
     endDate: string
   ) {
-    return await transactionSyncQueue.add('sync-transactions', {
+    if (!redis) {
+      console.log('Redis not configured, skipping queue operation');
+      return;
+    }
+    return await transactionSyncQueue?.add('sync-transactions', {
       userId,
       accessToken,
       startDate,
@@ -458,7 +465,11 @@ export class QueueManager {
     startDate?: string,
     endDate?: string
   ) {
-    return await reconciliationQueue.add('reconcile-accounts', {
+    if (!redis) {
+      console.log('Redis not configured, skipping queue operation');
+      return;
+    }
+    return await reconciliationQueue?.add('reconcile-accounts', {
       userId,
       provider: provider as any,
       accountId,
@@ -477,7 +488,11 @@ export class QueueManager {
     eventType: string,
     payload: any
   ) {
-    return await webhookProcessingQueue.add('process-webhook', {
+    if (!redis) {
+      console.log('Redis not configured, skipping queue operation');
+      return;
+    }
+    return await webhookProcessingQueue?.add('process-webhook', {
       eventId,
       provider,
       eventType,
@@ -491,7 +506,11 @@ export class QueueManager {
     amount: number,
     userId: string
   ) {
-    return await aiCategorizationQueue.add('categorize-transaction', {
+    if (!redis) {
+      console.log('Redis not configured, skipping queue operation');
+      return;
+    }
+    return await aiCategorizationQueue?.add('categorize-transaction', {
       transactionId,
       description,
       amount,
@@ -500,11 +519,39 @@ export class QueueManager {
   }
 
   static async getQueueStats() {
+    if (!redis) {
+      return {
+        transactionSync: { waiting: 0, active: 0, completed: 0, failed: 0 },
+        reconciliation: { waiting: 0, active: 0, completed: 0, failed: 0 },
+        webhookProcessing: { waiting: 0, active: 0, completed: 0, failed: 0 },
+        aiCategorization: { waiting: 0, active: 0, completed: 0, failed: 0 },
+      };
+    }
     return {
-      transactionSync: await transactionSyncQueue.getJobCounts(),
-      reconciliation: await reconciliationQueue.getJobCounts(),
-      webhookProcessing: await webhookProcessingQueue.getJobCounts(),
-      aiCategorization: await aiCategorizationQueue.getJobCounts(),
+      transactionSync: (await transactionSyncQueue?.getJobCounts()) || {
+        waiting: 0,
+        active: 0,
+        completed: 0,
+        failed: 0,
+      },
+      reconciliation: (await reconciliationQueue?.getJobCounts()) || {
+        waiting: 0,
+        active: 0,
+        completed: 0,
+        failed: 0,
+      },
+      webhookProcessing: (await webhookProcessingQueue?.getJobCounts()) || {
+        waiting: 0,
+        active: 0,
+        completed: 0,
+        failed: 0,
+      },
+      aiCategorization: (await aiCategorizationQueue?.getJobCounts()) || {
+        waiting: 0,
+        active: 0,
+        completed: 0,
+        failed: 0,
+      },
     };
   }
 }

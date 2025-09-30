@@ -3,10 +3,20 @@ import { getServerSession } from 'next-auth';
 import { PlaidService } from '@/lib/plaid-service';
 import { PrismaClient } from '@prisma/client';
 
+export const dynamic = 'force-dynamic';
+
 const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
+    // Check if Plaid is configured
+    if (!process.env.PLAID_CLIENT_ID || !process.env.PLAID_SECRET) {
+      return NextResponse.json(
+        { error: 'Plaid not configured' },
+        { status: 503 }
+      );
+    }
+
     const session = await getServerSession();
 
     if (!session?.user?.id) {
